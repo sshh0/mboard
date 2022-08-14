@@ -1,0 +1,17 @@
+{% load extra %}
+{% get_proper_elided_page_range paginator page_obj.number on_each_side=2 on_ends=2 as page_range %}
+{% for page in page_range %}
+  {% if page_obj.number == page %}
+    <span class="page-link">[{{ page }}]</span>
+  {% else %}
+    {% if page == paginator.ELLIPSIS %}
+      <span class="page-link">{{ paginator.ELLIPSIS }}</span>
+    {% else %}
+      {% if page == 1 %}
+        <a class="page-link" href="{% url 'mboard:list_threads' board page %}">[{{ page }}]</a>
+        {% else %}
+        <a class="page-link" href="{% url 'mboard:list_threads' board page %}">[{{ page }}]</a>
+      {% endif %}
+    {% endif %}
+  {% endif %}
+{% endfor %}

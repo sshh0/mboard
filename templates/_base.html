@@ -1,0 +1,22 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <link href="{% static 'css/css.css' %}" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="{% static 'favicon.png' %}">
+  <title>{{ thread.text|default:board|truncatechars:50 }}</title>
+</head>
+<body>
+{% include 'header.html' %}
+{{ form.image.errors }}
+{{ form.text.errors }}
+{{ form.captcha.errors }}
+{% block content %}
+{% endblock content %}
+{% include 'footer.html' %}
+<script src="{% static 'js/popper.min.js' %}"></script>
+<script src="{% static 'js/tippy-bundle.umd.js' %}"></script>
+<script src={% static "js/js.js" %}></script>
+</body>
+</html>

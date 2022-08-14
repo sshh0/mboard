@@ -1,0 +1,20 @@
+{% load extra %}
+<article class="opPost" id="id{{ thread.pk }}" data-id="{{ thread.pk }}">
+  <div class="opPostHeader">
+            <span>{{ thread.poster }} <span class="date">{{ thread.date|date:'d/m/Y G:i' }}</span> №:
+              <a class="postLink" href="#id{{ thread.pk }}">{{ thread.pk }}</a></span>
+    <a class="threadlink" href="{{ thread.get_absolute_url }}">В тред</a>
+  </div>
+  <div class="imglink">
+    <a target="_blank" href="{{ thread.image.url }}">{{ thread.image.url|strippath|truncatechars:33 }}</a>
+    ({{ thread.image.size|filesizeformat }})
+  </div>
+  <div class="imagediv">
+    <a style="float: left" href="{{ thread.image.url }}">
+      <img class="image" src="{{ thread.thumbnail.url }}" alt="">
+    </a>
+  </div>
+  <div class="text">{% customize_post_string thread.text thread posts_ids %}
+    <div class="replies"></div>
+  </div>
+</article>

@@ -1,0 +1,20 @@
+{% extends '_base.html' %}
+{% block content %}
+  <div class="container threadList">
+    {% include 'postform.html' with postformbutton='Новый тред' %}
+    <hr>
+    {% for thread, posts in threads.items %}
+      <section class="thread" data-threadid="{{ thread.pk }}">
+        {% include 'OPpost.html' %}
+        {% for post in posts %}
+          {% include 'post.html' %}
+        {% endfor %}
+      </section>
+      <div class="postcount">Всего постов: {{ thread.post_set.all|length }}</div>
+      <hr>
+    {% endfor %}
+    <br>
+    {% include 'pagination.html' %}
+    {% include 'quickpostform.html' %}
+  </div>
+{% endblock content %}
