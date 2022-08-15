@@ -35,7 +35,8 @@ INTERNAL_IPS = [
 
 APPEND_SLASH = True
 
-CAPTCHA_FONT_SIZE = 25
+CAPTCHA_FONT_SIZE = 30
+# CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.math_challenge'
 
 # Application definition
 

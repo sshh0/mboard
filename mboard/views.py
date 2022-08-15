@@ -1,5 +1,5 @@
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.shortcuts import render, redirect, reverse
+from django.shortcuts import render, redirect, reverse, get_object_or_404
 from mboard.models import Post, Board
 from .forms import PostForm, ThreadPostForm
 from PIL import Image
@@ -12,9 +12,9 @@ from email.utils import parsedate_to_datetime
 
 
 def list_threads(request, board, pagenum=1):
-    board = Board.objects.get(board_name=board)
+    board = get_object_or_404(Board, board_name=board)
     if request.method == 'POST':
-        if 'threadnum' in request.POST:  # reply in the thread from outside the thread (JS)
+        if 'threadnum' in request.POST:  # reply to the thread from outside the thread (JS)
             return get_thread(request, request.POST.get('threadnum'), board, x=True)
         form = ThreadPostForm(data=request.POST, files=request.FILES)
         if form.is_valid():
@@ -76,16 +76,14 @@ def ajax_tooltips_onhover(request, thread_id, **kwargs):
             return JsonResponse(jsn, safe=False)
 
 
-@last_modified(lambda request, thread_id, **kwargs: Post.objects.all().latest('date').date)
-# don't proceed if no new posts, return 304 response
-def ajax_load_new_posts(request, thread_id, **kwargs):
+@last_modified(lambda request, thread_id, **kwargs: Post.objects.get(pk=thread_id).bump)
+def ajax_load_new_posts(request, thread_id, **kwargs):  # don't proceed if no new posts, return 304 response
     thread = Post.objects.get(pk=thread_id)
     return get_new_posts(request, thread)
 
 
 def get_new_posts(request, thread):
-    last_post_date = parsedate_to_datetime(
-        request.headers['If-Modified-Since'])
+    last_post_date = parsedate_to_datetime(request.headers['If-Modified-Since'])
     posts = thread.post_set.all().filter(date__gt=last_post_date)
     posts_ids = {thread: thread.all_posts_ids_in_thread()}
     html_rendered_string = ''

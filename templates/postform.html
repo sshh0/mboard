@@ -6,7 +6,6 @@
       <button style="float: right" type="submit">Отправить</button>
     </div>
     {{ form.text }}
-    {{ form.threadnum.as_hidden }}
     {{ form.captcha }}
     {{ form.image }}
     {% csrf_token %}
