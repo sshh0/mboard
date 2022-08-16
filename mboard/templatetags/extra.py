@@ -4,6 +4,7 @@ from django import template
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from mboard.models import Post
+from precise_bbcode.bbcode import get_parser
 
 register = template.Library()
 
@@ -18,6 +19,8 @@ def customize_post_string(post_string, thread, posts_ids):
     post_string = escape(post_string)
     post_string = insert_links(post_string, thread, posts_ids)
     post_string = color_quoted_text(post_string)
+    parser = get_parser()
+    post_string = parser.render(post_string)
     return mark_safe(post_string.replace("\n", "<br>"))
 
 

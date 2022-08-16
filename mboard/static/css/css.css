@@ -256,3 +256,12 @@ hr {
 .page-link {
     font-size: large;
 }
+
+.spoiler{
+    background-color: black;
+    color: black;
+}
+
+.spoiler:hover {
+    color: white;
+}

@@ -36,9 +36,11 @@ INTERNAL_IPS = [
 APPEND_SLASH = True
 
 CAPTCHA_FONT_SIZE = 30
+CAPTCHA_TEST_MODE = True
 # CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.math_challenge'
 
-# Application definition
+BBCODE_DISABLE_BUILTIN_TAGS = True
+BBCODE_ALLOW_SMILIES = False
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -50,6 +52,7 @@ INSTALLED_APPS = [
 
     'mboard.apps.MboardConfig',
     'captcha',
+    'precise_bbcode',
     # 'debug_toolbar',
 ]
 

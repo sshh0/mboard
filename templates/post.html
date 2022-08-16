@@ -1,4 +1,5 @@
 {% load extra %}
+{% load bbcode_tags %}
 <article data-id="{{ post.pk }}" id="id{{ post.pk }}" class="post"> <!-- PEREPISAT IDSHKI TODO--->
     <div class="postHeader">{{ post.poster }} <span class="date">{{ post.date|date:'d/m/Y G:i:s' }}</span> №:<a
             class="postLink" href="{{ thread.get_absolute_url }}#id{{ post.pk }}">{{ post.pk }}</a></div>
