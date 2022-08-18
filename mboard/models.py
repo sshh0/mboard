@@ -4,7 +4,7 @@ from django.core.validators import MinLengthValidator
 
 class Post(models.Model):
     thread = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
-    poster = models.CharField(max_length=20, default='Anon')
+    poster = models.CharField(max_length=35, default='Anon')
     text = models.TextField(max_length=4501, blank=False)
     date = models.DateTimeField(auto_now_add=True)
     image = models.ImageField(upload_to='post/images/', blank=True, verbose_name='Image')

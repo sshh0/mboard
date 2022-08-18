@@ -9,6 +9,7 @@ from django.template.loader import render_to_string
 from django.core.paginator import Paginator
 from django.views.decorators.http import last_modified
 from email.utils import parsedate_to_datetime
+from random import randint
 
 
 def list_threads(request, board, pagenum=1):
@@ -106,3 +107,10 @@ def make_thumbnail(inmemory_image):
 
 def main_page(request):
     return render(request, 'main_page.html', context={'board': 'mboard'})
+
+
+def random_digit_challenge():
+    ret = ''
+    for i in range(4):
+        ret += str(randint(0, 9))
+    return ret, ret
