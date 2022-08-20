@@ -82,20 +82,6 @@ function fetchTippy(quoteElmnt) {
         })
 }
 
-// function showQuotesOnHover() { //hz cho eto
-//     const quotes = document.querySelectorAll('.text');
-//     quotes.forEach((quote) => quote.addEventListener('mouseover', function (event) {
-//             if (event.target.className === 'quote') {
-//                 if (!event.target.hasOwnProperty('_tippy')) {
-//                     const quoteElmnt = event.target;
-//                     const loadAndShow = true;
-//                     fetchTippy(quoteElmnt, loadAndShow)
-//                 }
-//             }
-//         }
-//     ))
-// }
-
 function addRepliesToPost() {
     let previousQuote;
     let previousPostId;
@@ -145,12 +131,8 @@ function fetchNewPosts() {
     }
 
     function getLastPostDate() {
-        const dateArray = lastLoadedPost.querySelector('.date').innerText.split(/[/| :]/g);
-        [dateArray[0], dateArray[2]] = [dateArray[2], dateArray[0]]; // 10/07/2022 20:30 => 2022/10/07 20:30
-        dateArray[1] -= 1;  // months start from 0
-        let dateObject = new Date(...dateArray);
-        dateObject.setSeconds(dateObject.getSeconds() + 1); // +1 sec from the last post
-        return dateObject.toUTCString()  // http date format
+        const timestamp = lastLoadedPost.querySelector('.unixtime');
+        return new Date(timestamp.textContent * 1000).toUTCString(); //milliseconds=>seconds for python's unixtime
     }
 }
 
@@ -173,8 +155,8 @@ function ApplyJsOnFetchedElements() {
 }
 
 
-function expandImage(imgClicked) {
-    imgClicked.preventDefault();
+function expandImage(click) {
+    click.preventDefault();
     this.hidden = true;  // this == imgClicked.target
     let expandedImg = document.createElement('img');
     this.closest('.imagediv').className = 'imagediv-expanded';

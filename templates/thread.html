@@ -2,11 +2,12 @@
 {% block content %}
   <div class="container threadPage">
     <div class="navdiv-top">
-      <a href="../../">Back</a>
-      <a href="#bottom">Bottom</a>
+      <a href="../../">Назад</a>
+      <a href="#bottom">Вниз</a>
     </div>
     <hr>
     <section class="thread" data-threadid="{{ thread.pk }}">
+    <a href="#bottom"> <button>aaa</button></a>
       {% include 'OPpost.html' %}
       {% for post in thread.post_set.all %}
         {% include 'post.html' %}
@@ -16,17 +17,11 @@
     <div class="navdiv-bottom">
       <a href="../../">Back</a>
       <a href="#top">Top</a>
-      <a class="js-fetch-new-posts">Load new posts</a>
-      <span hidden id="fetchStatus">No new posts</span>
+      <a class="js-fetch-new-posts">Обновить тред</a>
+      <span hidden id="fetchStatus">Нет новых постов</span>
     </div>
     {% include 'postform.html' with postformbutton='Ответить' %}
     {% include 'quickpostform.html' %}
     <div id="bottom"></div>
   </div>
-    <!-- <script>
-    // {% if scrolldown is True %}
-    //     document.querySelector('details').open = true;
-    //     document.querySelector('details').scrollIntoView();
-    // {% endif %}
-    </script> -->
 {% endblock content %}

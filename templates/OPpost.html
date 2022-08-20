@@ -4,8 +4,10 @@
     <div class="opPostHeader">
             <span>
                 <span class="poster"> {{ thread.poster }}</span>
-                <span class="date">{{ thread.date|date:'d/m/Y G:i:s' }}</span> №:
-              <a class="postLink" href="#id{{ thread.pk }}">{{ thread.pk }}</a></span>
+                <span class="date">{{ thread.date|date:'d/m/Y G:i:s' }}
+                    <span hidden class="unixtime">{{ post.date|date:"U" }}</span>
+                </span>
+                №: <a class="postLink" href="#id{{ thread.pk }}">{{ thread.pk }}</a></span>
         <a class="threadlink" href="{{ thread.get_absolute_url }}">В тред</a>
     </div>
     <div class="imglink">

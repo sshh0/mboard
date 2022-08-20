@@ -1,17 +1,21 @@
 {% load extra %}
 {% load bbcode_tags %}
 <article data-id="{{ post.pk }}" id="id{{ post.pk }}" class="post"> <!-- PEREPISAT IDSHKI TODO--->
-    <div class="postHeader">{{ post.poster }} <span class="date">{{ post.date|date:'d/m/Y G:i:s' }}</span> №:<a
-            class="postLink" href="{{ thread.get_absolute_url }}#id{{ post.pk }}">{{ post.pk }}</a></div>
+    <div class="postHeader">{{ post.poster }}
+        <span class="date">{{ post.date|date:'d/m/Y G:i:s' }}
+            <span hidden class="unixtime">{{ post.date|date:"U" }}</span>
+        </span>
+        №: <a class="postLink" href="{{ thread.get_absolute_url }}#id{{ post.pk }}">{{ post.pk }}</a>
+    </div>
     {% if post.thumbnail %}
-    <div class="imglink"><a target="_blank"
-                            href="{{ post.image.url }}">{{ post.image.url|strippath|truncatechars:33 }}</a>
-        ({{ post.image.size|filesizeformat }})
-    </div>
-    <div class="imagediv">
-        <a style="float: left" href="{{ post.image.url }}"><img class="image" src="{{ post.thumbnail.url }}"
-                                                                alt=""></a>
-    </div>
+        <div class="imglink"><a target="_blank"
+                                href="{{ post.image.url }}">{{ post.image.url|strippath|truncatechars:33 }}</a>
+            ({{ post.image.size|filesizeformat }})
+        </div>
+        <div class="imagediv">
+            <a style="float: left" href="{{ post.image.url }}"><img class="image" src="{{ post.thumbnail.url }}"
+                                                                    alt=""></a>
+        </div>
     {% endif %}
     <div class="text">{% customize_post_string post.text thread posts_ids %}
     </div>
