@@ -16,7 +16,7 @@ def list_threads(request, board, pagenum=1):
     board = get_object_or_404(Board, board_name=board)
     if request.method == 'POST':
         if 'threadnum' in request.POST:  # reply to the thread from outside the thread (JS)
-            return get_thread(request, request.POST.get('threadnum'), board, x=True)
+            return get_thread(request, request.POST.get('threadnum'), board)
         form = ThreadPostForm(data=request.POST, files=request.FILES)
         if form.is_valid():
             new_thread = form.save(commit=False)
@@ -42,7 +42,7 @@ def list_threads(request, board, pagenum=1):
     return render(request, 'list_threads.html', context)
 
 
-def get_thread(request, thread_id, board, x=False):
+def get_thread(request, thread_id, board):
     if request.method == 'POST':
         form = PostForm(data=request.POST, files=request.FILES)
         if form.is_valid():
@@ -56,7 +56,7 @@ def get_thread(request, thread_id, board, x=False):
             new_post.save()
             return redirect(
                 reverse('mboard:get_thread', kwargs={'thread_id': thread_id, 'board': board}) + f'#id{new_post.id}')
-        if x:  # failed reply from outside the thread
+        else:
             return render(request, 'post_error.html', {'form': form, 'board': board})
     else:
         form = PostForm

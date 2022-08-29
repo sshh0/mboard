@@ -1,12 +1,14 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from mboard.views import *
+from django.shortcuts import redirect
+from mboard.views import list_threads, get_thread, ajax_tooltips_onhover, ajax_load_new_posts
 
 app_name = 'mboard'
 
 urlpatterns = [
-    path('', main_page, name='main_page'),
+    # path('', main_page, name='main_page'),
+    path('', lambda request: redirect('mboard:list_threads', board='b')),
     path('<str:board>/', list_threads, name='list_threads'),
     path('<str:board>/<int:pagenum>/', list_threads, name='list_threads'),
     path('<str:board>/thread/<int:thread_id>/', get_thread, name='get_thread'),

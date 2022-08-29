@@ -8,15 +8,110 @@ if (!document.querySelector('.container').matches(".main, .captcha-error")) {
     addRepliesToPost();
     altEnterFormSubmit();
     document.querySelector('.js-fetch-new-posts')?.addEventListener('click', fetchNewPosts);
+    if (document.querySelectorAll('.page-link').length === 1) document.querySelector('.page-link').hidden = true;
     document.querySelectorAll('.quote, .reply').forEach((elmnt) => elmnt.addEventListener('mouseover', function (event) {
         if (!event.target.hasOwnProperty('_tippy')) {
             const loadAndShow = true;
             addTooltip(event.target, loadAndShow)
         }
+        elmnt.addEventListener('click', onClick)
     }));
+    insertEmbedVideoButton();
 }
 if (!document.querySelector('.container').matches(".main")) captcha();
 
+
+const onClick = twoTapsOnTouchDevices()
+
+function twoTapsOnTouchDevices() {
+    let clicks = 0;
+
+    return function (ev) {
+        clicks++;
+        if (clicks === 2 || !window.matchMedia("(pointer: coarse)").matches) {
+            clicks = 0;
+        } else {
+            ev.preventDefault();
+        }
+    };
+}
+
+function insertEmbedVideoButton() {
+    const regex = /(?:www\.)?(youtu|yewtu)\.?be(?:\.com)?\/?\S*(?:watch|embed)?(?:\S*v=|v\/|\/)([\w\-_]+)&?/
+    document.querySelectorAll('.text').forEach((el) => {
+        el.childNodes.forEach((node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                let url = regex.exec(node.nodeValue);
+                if (url) {
+                    let newSpan = insertLinkIntoString(node.nodeValue, url.index + url[0].length, url[0]);
+                    addListeners(newSpan, url[0]);
+                    el.replaceChild(newSpan, node);
+                }
+            }
+        })
+    })
+}
+
+function addListeners(span, url) {
+    let a = span.querySelector('a');
+    a.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        !span.querySelector('iframe') ? embedVideo(span, url) : span.querySelector('div').remove()
+    });
+    if (!window.matchMedia("(pointer: coarse)").matches) {
+        a.addEventListener('mouseover', function (ev) {
+            if (url.includes('youtu') && !ev.target.hasOwnProperty('_tippy')) {
+                fetch('https://www.youtube.com/oembed?url=' + url)
+                    .then(response => {
+                        if (!response.ok) {
+                            let imgNoVideo = document.createElement('img');
+                            imgNoVideo.src = 'https://i.ytimg.com/mqdefault.jpg';
+                            tippy(ev.target, {
+                                content: imgNoVideo,
+                                showOnCreate: true,
+                            });
+                            return Promise.reject('fetchErr')
+                        } else return response.json()
+                    })
+                    .then(data => {
+                        let img = document.createElement('img');
+                        img.src = data['thumbnail_url'];
+                        img.width = 320;
+                        img.height = 180;
+                        tippy(a, {
+                            content: img,
+                            showOnCreate: true
+                        })
+                    })
+            }
+        })
+    }
+}
+
+function insertLinkIntoString(text, pos, url) {
+    let beginning = document.createTextNode(text.slice(0, pos));
+    let end = document.createTextNode(text.slice(pos - text.length));
+    let span = document.createElement('span');
+    let a = document.createElement('a');
+    a.innerText = ' [раскрыть] ';
+    a.href = 'https://' + url;
+    span.appendChild(beginning);
+    span.appendChild(a);
+    if (text.length !== beginning.length) {
+        span.appendChild(end)
+    }
+    return span
+}
+
+function embedVideo(span, url) {
+    url = url.replace('/watch?v=', '/embed/');
+    let embeddiv = document.createElement('div');
+    let iframe = document.createElement('iframe');
+    iframe.src = 'https://' + url;
+    iframe.allowFullscreen = true;
+    span.appendChild(embeddiv);
+    embeddiv.appendChild(iframe)
+}
 
 function captcha() {
     const url = `${window.location.origin}/captcha/refresh/`;
@@ -38,7 +133,6 @@ function captcha() {
     ))
 }
 
-
 function addTooltip(quoteElmnt, loadAndShow = false) {
     let tooltip;
     try {
@@ -56,12 +150,10 @@ function addTooltip(quoteElmnt, loadAndShow = false) {
             // showOnCreate: true,
             // interactive: true,
             content: template.content.firstChild,
-            placement: 'right-end', //top
+            placement: 'top', //right-end
             maxWidth: 800,
             animation: false,
             appendTo: quoteElmnt.parentNode,
-            touch: 'hold',
-            // duration: [0, 900],
         })
         if (loadAndShow === true) t.show()
     }
@@ -131,8 +223,11 @@ function fetchNewPosts() {
     }
 
     function getLastPostDate() {
-        const timestamp = lastLoadedPost.querySelector('.unixtime');
-        return new Date(timestamp.textContent * 1000).toUTCString(); //milliseconds=>seconds for python's unixtime
+        const timestamp = lastLoadedPost.querySelector('.date').dataset['unixtime'];
+        const lastPostDate = new Date(timestamp * 1000);  //milliseconds to seconds
+        // lastPostDate.setSeconds(lastPostDate.getSeconds() +1);
+        return lastPostDate.toUTCString()
+
     }
 }
 

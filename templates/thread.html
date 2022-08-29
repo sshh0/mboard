@@ -7,7 +7,6 @@
     </div>
     <hr>
     <section class="thread" data-threadid="{{ thread.pk }}">
-    <a href="#bottom"> <button>aaa</button></a>
       {% include 'OPpost.html' %}
       {% for post in thread.post_set.all %}
         {% include 'post.html' %}
@@ -15,8 +14,8 @@
     </section>
     <hr>
     <div class="navdiv-bottom">
-      <a href="../../">Back</a>
-      <a href="#top">Top</a>
+      <a href="../../">Назад</a>
+      <a href="#top">Вверх</a>
       <a class="js-fetch-new-posts">Обновить тред</a>
       <span hidden id="fetchStatus">Нет новых постов</span>
     </div>

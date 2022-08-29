@@ -9,7 +9,7 @@
     {% else %}
       {% if page == 1 %}
         <a class="page-link" href="{% url 'mboard:list_threads' board page %}">[{{ page }}]</a>
-        {% else %}
+      {% else %}
         <a class="page-link" href="{% url 'mboard:list_threads' board page %}">[{{ page }}]</a>
       {% endif %}
     {% endif %}

@@ -1,13 +1,12 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from mboard.models import Post, Board
+from mboard.models import Post
 from captcha.fields import CaptchaField
 
 
 class PostForm(forms.ModelForm):
-    text = forms.CharField(error_messages={'required': 'Enter the message'},
-                           min_length=1, widget=forms.Textarea(attrs={'cols': 53}))
-    poster = forms.CharField(required=False, empty_value='Anon', widget=forms.TextInput(attrs={'placeholder': 'Anon'}))
+    text = forms.CharField(error_messages={'required': 'Enter the message'}, min_length=1, widget=forms.Textarea())
+    poster = forms.CharField(required=False, empty_value='Анон', widget=forms.TextInput(attrs={'placeholder': 'Анон'}))
     threadnum = forms.IntegerField(required=False)
     image = forms.ImageField(required=False)
     # board = forms.ModelChoiceField(queryset=Board.objects.all(), widget=forms.HiddenInput, to_field_name='board_name')

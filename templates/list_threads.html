@@ -10,7 +10,7 @@
           {% include 'post.html' %}
         {% endfor %}
       </section>
-      <div class="postcount">Всего постов: {{ thread.post_set.all|length }}</div>
+      <div class="postcount">Всего постов: {{ thread.post_set.all|length|add:1 }}</div>
       <hr>
     {% endfor %}
     <br>

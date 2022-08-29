@@ -1,7 +1,7 @@
 {% load static %}
 <form hidden id="quickPostForm" action="" method="post"
       enctype="multipart/form-data">
-  <img id='closebutton' alt="Close" style="float: left" src="{% static 'closebutton.svg' %}">
+  <img loading="lazy" id='closebutton' alt="Close" style="float: left" src="{% static 'closebutton.svg' %}">
   <div id='quickPostHeader' style="cursor: move; text-align: center"><span>Ответить в тред</span>
   </div>
   {% csrf_token %}

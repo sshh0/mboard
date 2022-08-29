@@ -1,15 +1,15 @@
 {% extends '_base.html' %}
 {% load static %}
 {% block content %}
-    <div class="container main">
-        <div style="text-align: center">
-            <img style=": " src="{% static 'thumb_zhdems.JPG' %}" alt="image">
-            <a href="{% url 'mboard:list_threads' 'b' %}">
-                <h5>/b</h5>
-            </a>
-            <a href="{% url 'mboard:list_threads' 'test' %}">
-                <h5>/test</h5>
-            </a>
-        </div>
+  <div class="container main">
+    <div style="text-align: center">
+      <img style=": " src="{% static 'thumb_zhdems.JPG' %}" alt="image">
+      <a href="{% url 'mboard:list_threads' 'b' %}">
+        <h5>/b</h5>
+      </a>
+      <a href="{% url 'mboard:list_threads' 'test' %}">
+        <h5>/test</h5>
+      </a>
     </div>
+  </div>
 {% endblock content %}

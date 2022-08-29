@@ -1,6 +1,6 @@
 .container {
-    margin-left: 50px;
-    margin-right: 50px;
+    margin-left: 5%;
+    margin-right: 5%;
     margin-bottom: 250px;
     color: white;
     font-family: sans-serif;
@@ -14,8 +14,12 @@
 }
 
 .header {
-    margin-bottom: 100px;
+    /*margin-bottom: 100px;*/
     margin-top: 20px;
+}
+
+.threadPage {
+    margin-top: 60px;
 }
 
 body {
@@ -47,7 +51,7 @@ body {
 .threadlink {
     color: cornflowerblue;
     text-decoration: none;
-    margin-left: 15px;
+    margin-left: 1%;
 }
 
 .text {
@@ -83,6 +87,16 @@ body {
 
 .imagediv-expanded {
     display: table;
+}
+
+.imagediv a {
+    float: left;
+}
+
+div iframe {
+    width: 640px;
+    height: 360px;
+    border: none;
 }
 
 details {
@@ -132,7 +146,7 @@ summary {
 
 #quickPostForm {
     position: fixed;
-    left: 50%;
+    left: 30%;
     top: 40%;
     background-color: #282a2e;
     margin-left: auto;
@@ -142,9 +156,17 @@ summary {
 
 }
 
+@media only screen and (hover: none) and (pointer: coarse) {
+    #quickPostForm {
+        left: 0;
+    }
+
+}
+
 textarea {
     background-color: #282A2E;
 }
+
 #id_text {
     display: block;
     /* background-color: #282A2E; */
@@ -257,7 +279,7 @@ hr {
     font-size: large;
 }
 
-.spoiler{
+.spoiler {
     background-color: black;
     color: black;
 }
