@@ -8,36 +8,46 @@ if (!document.querySelector('.container').matches(".main, .captcha-error")) {
     addRepliesToPost();
     altEnterFormSubmit();
     document.querySelector('.js-fetch-new-posts')?.addEventListener('click', fetchNewPosts);
-    if (document.querySelectorAll('.page-link').length === 1) document.querySelector('.page-link').hidden = true;
+    if (document.querySelectorAll('.page-link').length === 1) {
+        document.querySelector('.page-link').hidden = true;
+    }
     document.querySelectorAll('.quote, .reply').forEach((elmnt) => elmnt.addEventListener('mouseover', function (event) {
         if (!event.target.hasOwnProperty('_tippy')) {
             const loadAndShow = true;
-            addTooltip(event.target, loadAndShow)
+            addTooltip(event.target, loadAndShow);
         }
-        elmnt.addEventListener('click', onClick)
+        elmnt.addEventListener('click', onClick);
     }));
     insertEmbedVideoButton();
 }
-if (!document.querySelector('.container').matches(".main")) captcha();
+if (!document.querySelector('.container').matches(".main")) {
+    captcha();
+}
 
-
-const onClick = twoTapsOnTouchDevices()
+const onClick = twoTapsOnTouchDevices();
 
 function twoTapsOnTouchDevices() {
     let clicks = 0;
+    let target;
 
     return function (ev) {
+        if (ev.target !== target) {
+            clicks--
+        }
         clicks++;
         if (clicks === 2 || !window.matchMedia("(pointer: coarse)").matches) {
             clicks = 0;
         } else {
             ev.preventDefault();
+            ev.target._tippy.setProps({placement: 'top'});
+            ev.target._tippy.show();
+            target = ev.target;
         }
     };
 }
 
 function insertEmbedVideoButton() {
-    const regex = /(?:www\.)?(youtu|yewtu)\.?be(?:\.com)?\/?\S*(?:watch|embed)?(?:\S*v=|v\/|\/)([\w\-_]+)&?/
+    const regex = /(?:www\.)?(youtu|yewtu)\.?be(?:\.com)?\/?\S*(?:watch|embed)?(?:\S*v=|v\/|\/)([\w\-_]+)&?/;
     document.querySelectorAll('.text').forEach((el) => {
         el.childNodes.forEach((node) => {
             if (node.nodeType === Node.TEXT_NODE) {
@@ -48,45 +58,56 @@ function insertEmbedVideoButton() {
                     el.replaceChild(newSpan, node);
                 }
             }
-        })
-    })
+        });
+    });
 }
 
 function addListeners(span, url) {
     let a = span.querySelector('a');
+    let timeout;
     a.addEventListener('click', function (ev) {
         ev.preventDefault();
-        !span.querySelector('iframe') ? embedVideo(span, url) : span.querySelector('div').remove()
+        !span.querySelector('iframe') ? embedVideo(span, url) : span.querySelector('div').remove();
     });
     if (!window.matchMedia("(pointer: coarse)").matches) {
-        a.addEventListener('mouseover', function (ev) {
-            if (url.includes('youtu') && !ev.target.hasOwnProperty('_tippy')) {
-                fetch('https://www.youtube.com/oembed?url=' + url)
-                    .then(response => {
-                        if (!response.ok) {
-                            let imgNoVideo = document.createElement('img');
-                            imgNoVideo.src = 'https://i.ytimg.com/mqdefault.jpg';
-                            tippy(ev.target, {
-                                content: imgNoVideo,
-                                showOnCreate: true,
-                            });
-                            return Promise.reject('fetchErr')
-                        } else return response.json()
-                    })
-                    .then(data => {
-                        let img = document.createElement('img');
-                        img.src = data['thumbnail_url'];
-                        img.width = 320;
-                        img.height = 180;
-                        tippy(a, {
-                            content: img,
-                            showOnCreate: true
-                        })
-                    })
-            }
-        })
+        a.addEventListener('mouseenter', function (ev) {
+            timeout = setTimeout(function () {
+                loadVideoPreview(ev, url, a);
+            }, 1000);
+        });
+        a.addEventListener('mouseleave', function () {
+            clearTimeout(timeout);
+        });
     }
 }
+
+function loadVideoPreview(ev, url, a) {
+    if (url.includes('youtu') && !ev.target.hasOwnProperty('_tippy')) {
+        fetch('https://www.youtube.com/oembed?url=' + url)
+            .then(response => {
+                if (!response.ok) {
+                    let imgNoVideo = document.createElement('img');
+                    imgNoVideo.src = 'https://i.ytimg.com/mqdefault.jpg';
+                    tippy(ev.target, {
+                        content: imgNoVideo,
+                        showOnCreate: true,
+                    });
+                    return Promise.reject('fetchErr');
+                } else return response.json();
+            })
+            .then(data => {
+                let img = document.createElement('img');
+                img.src = data['thumbnail_url'];
+                img.width = 320;
+                img.height = 180;
+                tippy(a, {
+                    content: img,
+                    showOnCreate: true
+                });
+            });
+    }
+}
+
 
 function insertLinkIntoString(text, pos, url) {
     let beginning = document.createTextNode(text.slice(0, pos));
@@ -98,9 +119,9 @@ function insertLinkIntoString(text, pos, url) {
     span.appendChild(beginning);
     span.appendChild(a);
     if (text.length !== beginning.length) {
-        span.appendChild(end)
+        span.appendChild(end);
     }
-    return span
+    return span;
 }
 
 function embedVideo(span, url) {
@@ -110,7 +131,7 @@ function embedVideo(span, url) {
     iframe.src = 'https://' + url;
     iframe.allowFullscreen = true;
     span.appendChild(embeddiv);
-    embeddiv.appendChild(iframe)
+    embeddiv.appendChild(iframe);
 }
 
 function captcha() {
@@ -126,17 +147,17 @@ function captcha() {
                 .then((res) => res.json())
                 .then(json => {
                     form.querySelector("input[name='captcha_0']").value = json.key;
-                    form.querySelector(".captcha").src = json.image_url;
+                    form.querySelector(".captcha").src = json['image_url'];
                 })
-                .catch(console.error)
+                .catch(console.error);
         }
-    ))
+    ));
 }
 
 function addTooltip(quoteElmnt, loadAndShow = false) {
     let tooltip;
     try {
-        tooltip = document.querySelector(`[data-id='${quoteElmnt.dataset['quote']}']`).outerHTML;
+        tooltip = document.querySelector(`[data-id='${quoteElmnt.dataset.quote}']`).outerHTML;
         fillTooltip(quoteElmnt, tooltip, loadAndShow);
     } catch (e) { //tooltip content in another thread, get its content via fetch
         fetchTippy(quoteElmnt).then(tooltip => fillTooltip(quoteElmnt, tooltip, loadAndShow));
@@ -150,17 +171,17 @@ function addTooltip(quoteElmnt, loadAndShow = false) {
             // showOnCreate: true,
             // interactive: true,
             content: template.content.firstChild,
-            placement: 'top', //right-end
+            placement: 'right-end', //top
             maxWidth: 800,
             animation: false,
             appendTo: quoteElmnt.parentNode,
-        })
-        if (loadAndShow === true) t.show()
+        });
+        if (loadAndShow === true) t.show();
     }
 }
 
 function fetchTippy(quoteElmnt) {
-    let fetchURL = quoteElmnt.pathname + quoteElmnt.dataset['quote'] + '.json';
+    let fetchURL = quoteElmnt.pathname + quoteElmnt.dataset.quote + '.json';
     return fetch(fetchURL, {
         method: "GET",
         headers: {
@@ -170,27 +191,27 @@ function fetchTippy(quoteElmnt) {
     })
         .then((response) => response.json())
         .then((responseData) => {
-            return responseData
-        })
+            return responseData;
+        });
 }
 
 function addRepliesToPost() {
     let previousQuote;
     let previousPostId;
     document.querySelectorAll('.threadPage .quote').forEach((quote) => {
-        if (quote.dataset['quote'] !== previousQuote || quote.closest('article').dataset['id'] !== previousPostId) {
-            previousQuote = quote.dataset['quote'];
-            previousPostId = quote.closest('article').dataset['id'];
-            const postId = quote.closest('article').dataset['id'];
-            const text = '>>' + quote.closest('article').dataset['id'] + ' ';
+        if (quote.dataset.quote !== previousQuote || quote.closest('article').dataset.id !== previousPostId) {
+            previousQuote = quote.dataset.quote;
+            previousPostId = quote.closest('article').dataset.id;
+            const postId = quote.closest('article').dataset.id;
+            const text = '>>' + quote.closest('article').dataset.id + ' ';
             const template = document.createElement('template');
-            template.innerHTML = `<span><a class='reply' data-quote=${postId} href='#id${postId}'>${text}</a></span>`
-            const quotedPost = document.querySelector(`[data-id="${quote.dataset['quote']}"]`);
-            if (quotedPost != null) {
+            template.innerHTML = `<span><a class='reply' data-quote=${postId} href='#id${postId}'>${text}</a></span>`;
+            const quotedPost = document.querySelector(`[data-id="${quote.dataset.quote}"]`);
+            if (quotedPost !== null) {
                 quotedPost.querySelector('.replies').appendChild(template.content.firstChild);
             }
         }
-    })
+    });
 }
 
 function fetchNewPosts() {
@@ -208,14 +229,16 @@ function fetchNewPosts() {
     })
         .then(response => {
             const fetchStatus = document.getElementById('fetchStatus');
-            if (response.status === 200) response.json().then(newPosts => insert(newPosts))
+            if (response.status === 200) {
+                response.json().then(newPosts => insert(newPosts));
+            }
             if (response.status === 304) {
                 fetchStatus.hidden = false;
                 setTimeout(function () {
-                    fetchStatus.hidden = true
-                }, 10000) // 10 sec
+                    fetchStatus.hidden = true;
+                }, 10000); // 10 sec
             }
-        })
+        });
 
     function insert(newPosts) {
         const elmntlist = document.getElementsByTagName('article');
@@ -223,10 +246,10 @@ function fetchNewPosts() {
     }
 
     function getLastPostDate() {
-        const timestamp = lastLoadedPost.querySelector('.date').dataset['unixtime'];
+        const timestamp = lastLoadedPost.querySelector('.date').dataset.unixtime;
         const lastPostDate = new Date(timestamp * 1000);  //milliseconds to seconds
         // lastPostDate.setSeconds(lastPostDate.getSeconds() +1);
-        return lastPostDate.toUTCString()
+        return lastPostDate.toUTCString();
 
     }
 }
@@ -237,16 +260,16 @@ function ApplyJsOnFetchedElements() {
             if (node.className === 'post') {
                 node.querySelector('.image')?.addEventListener('click', expandImage);
                 node.querySelectorAll('.quote')?.forEach((quote) => {
-                    addTooltip(quote)
-                })
+                    addTooltip(quote);
+                });
             }
-        })
+        });
     }
 
-    const observer = new MutationObserver(callback)
+    const observer = new MutationObserver(callback);
     document.querySelectorAll('section').forEach((elmnt) => {
         observer.observe(elmnt, {childList: true});
-    })
+    });
 }
 
 
@@ -282,7 +305,7 @@ function showQuickPostForm() {
         quickPostForm.hidden = false;
         if (!quickPostForm.hidden) {
             {
-                quickPostFormTextArea.setRangeText(`>>` + this.closest('article').dataset['id'] + '\n');
+                quickPostFormTextArea.setRangeText(`>>` + this.closest('article').dataset.id + '\n');
                 quickPostFormTextArea.selectionStart = quickPostFormTextArea.selectionEnd = quickPostFormTextArea.value.length;
                 try {
                     if (window.getSelection().anchorNode.parentElement.closest('article').id === this.closest('article').id) {
@@ -293,7 +316,7 @@ function showQuickPostForm() {
                     }
                 } catch (e) {
                 }
-                quickPostForm.elements['id_threadnum'].value = this.closest('section').dataset['threadid'];
+                quickPostForm.elements['id_threadnum'].value = this.closest('section').dataset.threadid;
                 // if (!postForm.hidden) {
                 //     postForm.value = this.closest('section').dataset['threadid'];
                 // }
@@ -342,7 +365,7 @@ function focusTextArea() {
 function altEnterFormSubmit() {
     document.querySelectorAll('textarea').forEach((area) => area.addEventListener('keydown', (keyboardEv) => {
         if (keyboardEv.altKey && keyboardEv.code === 'Enter') {
-            window.document.activeElement.parentElement.submit()
+            window.document.activeElement.parentElement.submit();
         }
-    }))
+    }));
 }

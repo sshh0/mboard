@@ -32,9 +32,9 @@ def into_basename(file):
 def color_quoted_text(post_string):
     quoted_text = re.findall(r'^\s*&gt;.+', post_string, flags=re.MULTILINE)  # '^\s*&gt;[^&gt;].+'
     if quoted_text:
+        span = "<span style='color:peru'>{index}</span>"
         for count, index in enumerate(quoted_text):
-            span = f"<span style='color:peru'>{quoted_text[count]}</span>"
-            post_string = post_string.replace(quoted_text[count], span)
+            post_string = post_string.replace(index, span.format(index=index.strip()))
     return post_string
 
 

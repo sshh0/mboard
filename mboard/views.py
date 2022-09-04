@@ -1,15 +1,15 @@
+from email.utils import parsedate_to_datetime
+from random import randint
+from io import BytesIO
+from PIL import Image
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.shortcuts import render, redirect, reverse, get_object_or_404
-from mboard.models import Post, Board
-from .forms import PostForm, ThreadPostForm
-from PIL import Image
-from io import BytesIO
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.core.paginator import Paginator
 from django.views.decorators.http import last_modified
-from email.utils import parsedate_to_datetime
-from random import randint
+from mboard.models import Post, Board
+from .forms import PostForm, ThreadPostForm
 
 
 def list_threads(request, board, pagenum=1):
@@ -56,10 +56,8 @@ def get_thread(request, thread_id, board):
             new_post.save()
             return redirect(
                 reverse('mboard:get_thread', kwargs={'thread_id': thread_id, 'board': board}) + f'#id{new_post.id}')
-        else:
-            return render(request, 'post_error.html', {'form': form, 'board': board})
-    else:
-        form = PostForm
+        return render(request, 'post_error.html', {'form': form, 'board': board})
+    form = PostForm
     board = Board.objects.get(board_name=board)
     thread = board.post_set.get(pk=thread_id)
     context = {'thread': thread, 'posts_ids': {thread: thread.all_posts_ids_in_thread()}, 'form': form, 'board': board}
@@ -111,6 +109,6 @@ def main_page(request):
 
 def random_digit_challenge():
     ret = ''
-    for i in range(4):
+    for _ in range(4):
         ret += str(randint(0, 9))
     return ret, ret

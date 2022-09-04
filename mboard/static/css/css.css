@@ -55,7 +55,7 @@ body {
 }
 
 .text {
-    overflow: auto;
+    /*overflow: auto;*/
     /*display: inline;*/
     word-wrap: anywhere;
 
@@ -100,29 +100,22 @@ div iframe {
 }
 
 details {
-    /*margin-bottom: 120px;*/
-    margin-top: 50px;
+    margin-bottom: 20px;
+    margin-top: 3%;
     clear: both;
-    /* text-align: center; */
 }
 
 summary {
-    /* display: inline-block; */
+    margin-left: 40%;
+    margin-bottom: 2%;
     list-style: none;
-    margin-bottom: 20px;
+    display: inline;
 }
 
 #postForm {
     color: white;
     width: 400px;
     margin: auto;
-}
-
-
-#postForm > #id_poster {
-    width: 365px;
-    border: none;
-    outline: none;
 }
 
 #id_image {
@@ -161,6 +154,14 @@ summary {
         left: 0;
     }
 
+    .image {
+        max-width: 150px;
+    }
+
+    .container {
+        margin-left: 0;
+        margin-right: 0;
+    }
 }
 
 textarea {
@@ -169,7 +170,6 @@ textarea {
 
 #id_text {
     display: block;
-    /* background-color: #282A2E; */
     border: none;
     color: white;
     resize: both;
@@ -179,14 +179,16 @@ textarea {
 }
 
 #id_poster {
-    width: -moz-available;
     background-color: #282a2e;
     outline: none;
     color: white;
-    width: 100%;
     border: 1px solid dimgray;
+    width: 100%;
 }
 
+#postForm div #id_poster {
+    width: 65%;
+}
 
 #quickPostHeader {
     padding: 7px;
@@ -211,8 +213,8 @@ a {
     font-size: large;
     color: cornflowerblue;
     cursor: pointer;
-    display: block;
-    text-align: center;
+    /*display: block;*/
+    /*text-align: center;*/
 }
 
 .imglink {
@@ -225,7 +227,7 @@ a {
 }
 
 .tippy-content {
-    font-size: 17px;
+    font-size: 13px;
     /*white-space: pre-line;*/
     /*min-height: 100px;*/
     /*min-width: 250px;*/
@@ -286,4 +288,8 @@ hr {
 
 .spoiler:hover {
     color: white;
+}
+
+.postLink {
+    color: darkgrey;
 }
