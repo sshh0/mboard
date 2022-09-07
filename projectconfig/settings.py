@@ -1,25 +1,22 @@
 from pathlib import Path
+from dotenv import dotenv_values
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
+dotenv_config = dotenv_values(".env")
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = ''
+SECRET_KEY = dotenv_config['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = dotenv_config['DEBUG']
 
-ALLOWED_HOSTS = ['127.0.0.1', "192.168.1.133"]
+ALLOWED_HOSTS = dotenv_config['ALLOWED_HOSTS'].split()
 
 APPEND_SLASH = True
 
 CAPTCHA_FONT_SIZE = 30
-CAPTCHA_TEST_MODE = True
-# CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.math_challenge'
 CAPTCHA_CHALLENGE_FUNCT = 'mboard.views.random_digit_challenge'
 
 BBCODE_DISABLE_BUILTIN_TAGS = True
@@ -120,7 +117,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'

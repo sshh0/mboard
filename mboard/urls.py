@@ -7,7 +7,6 @@ from mboard.views import list_threads, get_thread, ajax_tooltips_onhover, ajax_l
 app_name = 'mboard'
 
 urlpatterns = [
-    # path('', main_page, name='main_page'),
     path('', lambda request: redirect('mboard:list_threads', board='b')),
     path('<str:board>/', list_threads, name='list_threads'),
     path('<str:board>/<int:pagenum>/', list_threads, name='list_threads'),

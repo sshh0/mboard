@@ -103,10 +103,6 @@ def make_thumbnail(inmemory_image):
     return thumb
 
 
-def main_page(request):
-    return render(request, 'main_page.html', context={'board': 'mboard'})
-
-
 def random_digit_challenge():
     ret = ''
     for _ in range(4):

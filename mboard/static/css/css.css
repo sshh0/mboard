@@ -55,7 +55,7 @@ body {
 }
 
 .text {
-    /*overflow: auto;*/
+    overflow: auto;
     /*display: inline;*/
     word-wrap: anywhere;
 
@@ -227,7 +227,7 @@ a {
 }
 
 .tippy-content {
-    font-size: 13px;
+    font-size: 14px;
     /*white-space: pre-line;*/
     /*min-height: 100px;*/
     /*min-width: 250px;*/
