@@ -1,4 +1,4 @@
 Django~=4.1
 django-simple-captcha~=0.5.17
-Pillow~=9.2.0
+django-precise-bbcode~=1.2.15
 python-dotenv~=0.21.0
