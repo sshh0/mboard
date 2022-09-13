@@ -5,6 +5,7 @@ if (!document.querySelector('.container').matches(".main, .captcha-error")) {
     dragPostForm(document.getElementById("quickPostHeader"));
     ApplyJsOnFetchedElements();
     document.querySelectorAll('.image').forEach((image) => image.addEventListener('click', expandImage));
+    document.querySelectorAll('.video-thumb').forEach((video) => video.addEventListener('click', expandVideo));
     addRepliesToPost();
     altEnterFormSubmit();
     document.querySelector('.js-fetch-new-posts')?.addEventListener('click', fetchNewPosts);
@@ -20,6 +21,30 @@ if (!document.querySelector('.container').matches(".main, .captcha-error")) {
     }));
     insertEmbedVideoButton();
 }
+
+function expandVideo(click) {
+    click.preventDefault();
+    let spanBtn = document.createElement('span');
+    spanBtn.innerText = '[закрыть]';
+    spanBtn.className = 'video-close-btn';
+    this.closest('.video-div').previousElementSibling.appendChild(spanBtn);
+    this.hidden = true;
+    let expandedVideo = document.createElement('video');
+    this.closest('.video-div').className = 'video-div-expanded';
+    expandedVideo.className = 'video-expanded'
+    expandedVideo.src = this.parentElement.href;
+    expandedVideo.setAttribute("controls", "controls");
+    expandedVideo.setAttribute("autoplay", "autoplay");
+    this.parentNode.appendChild(expandedVideo);
+    spanBtn.addEventListener('click', function () {
+        expandedVideo.previousElementSibling.hidden = false;
+        expandedVideo.closest('.video-div-expanded').className = 'video-div';
+        expandedVideo.remove();
+        spanBtn.remove();
+    });
+}
+
+
 if (!document.querySelector('.container').matches(".main")) {
     captcha();
 }
@@ -294,7 +319,7 @@ function showQuickPostForm() {
     const postsLinks = document.querySelectorAll('.post .postHeader .postLink, .opPost > .opPostHeader .postLink');
     const quickPostFormTextArea = document.querySelector('#quickPostForm > textarea');
     // const postForm = document.querySelector('#postForm');
-    quickPostForm.elements['id_image'].required = false;
+    quickPostForm.elements['id_file'].required = false;
     for (let i = 0; i < postsLinks.length; i++) {
         postsLinks[i].addEventListener('click', setTextValue
         );

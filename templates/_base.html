@@ -1,4 +1,5 @@
 {% load static %}
+{% load bbcode_tags %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -9,7 +10,7 @@
 </head>
 <body>
 {% include 'header.html' %}
-{{ form.image.errors }}
+{{ form.file.errors }}
 {{ form.text.errors }}
 {{ form.captcha.errors }}
 {% block content %}

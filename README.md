@@ -13,6 +13,7 @@ python manage.py shell
 from mboard.models import Board  
 Board.objects.create(board_name='b')  
 Board.objects.create(board_name='test')  
+exit()
 ```  
 
 Запустить:  

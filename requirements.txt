@@ -1,4 +1,4 @@
 Django~=4.1
 django-simple-captcha~=0.5.17
-django-precise-bbcode~=1.2.15
 python-dotenv~=0.21.0
+python-magic~=0.4.27

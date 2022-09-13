@@ -1,8 +1,5 @@
 from email.utils import parsedate_to_datetime
 from random import randint
-from io import BytesIO
-from PIL import Image
-from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.http import JsonResponse
 from django.template.loader import render_to_string
@@ -20,9 +17,6 @@ def list_threads(request, board, pagenum=1):
         form = ThreadPostForm(data=request.POST, files=request.FILES)
         if form.is_valid():
             new_thread = form.save(commit=False)
-            if form.cleaned_data['image']:
-                new_thread.thumbnail = make_thumbnail(
-                    form.cleaned_data['image'])
             new_thread.board = board
             new_thread.save()
             return redirect(reverse('mboard:get_thread', kwargs={'thread_id': new_thread.id, 'board': board}))
@@ -47,8 +41,6 @@ def get_thread(request, thread_id, board):
         form = PostForm(data=request.POST, files=request.FILES)
         if form.is_valid():
             new_post = form.save(commit=False)
-            if form.cleaned_data['image']:
-                new_post.thumbnail = make_thumbnail(form.files['image'])
             new_post.thread_id = thread_id
             new_post.thread.bump = new_post.bump
             new_post.thread.save()
@@ -93,18 +85,10 @@ def get_new_posts(request, thread):
         return JsonResponse(html_rendered_string, safe=False)
 
 
-def make_thumbnail(inmemory_image):
-    image = Image.open(inmemory_image)
-    image.thumbnail(size=(200, 220))
-    output = BytesIO()
-    image.save(output, quality=85, format=image.format)
-    thumb = InMemoryUploadedFile(
-        output, 'ImageField', 'thumb_' + inmemory_image.name, 'image/jpeg', None, None)
-    return thumb
-
-
 def random_digit_challenge():
     ret = ''
     for _ in range(4):
         ret += str(randint(0, 9))
     return ret, ret
+
+

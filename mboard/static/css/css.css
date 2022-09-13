@@ -82,7 +82,12 @@ body {
 }
 
 .imagediv {
-    display: contents;
+    /*display: contents;*/
+    float: left;
+}
+
+.video-div {
+    float: left;
 }
 
 .imagediv-expanded {
@@ -118,7 +123,7 @@ summary {
     margin: auto;
 }
 
-#id_image {
+#id_file {
     display: block;
     clear: both;
 }
@@ -292,4 +297,27 @@ hr {
 
 .postLink {
     color: darkgrey;
+}
+
+.video-close-btn {
+    float: right;
+    margin-right: 3%;
+    margin-bottom: 1%;
+    color: cornflowerblue;
+    cursor: pointer;
+    margin-left: 2%;
+}
+
+.video-expanded {
+    width: 100%;
+    max-height: 500px;
+}
+
+.video-link {
+    display: flex;
+}
+
+.video-thumb {
+    margin-right: 25px;
+    border: 1px dashed;
 }
