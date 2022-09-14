@@ -3,11 +3,11 @@ from mboard.models import Post
 from captcha.fields import CaptchaField
 import subprocess
 from magic import from_buffer
-import magic
 from django.core.files.base import ContentFile
 from io import BytesIO
 from PIL import Image
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from pathlib import Path
 
 
 class PostForm(forms.ModelForm):
@@ -30,16 +30,16 @@ class PostForm(forms.ModelForm):
                     self.add_error('file', 'Картинка > 1 MB')
                 self.instance.image = self.files['file']
                 self.instance.thumbnail = make_thumbnail(self.files['file'])
-            if 'video' in mime_type:
+            elif 'video' in mime_type:
                 if 'webm' in mime_type or 'mp4' in mime_type:
-                    if file.size > 10 * 1024 * 1024:
-                        self.add_error('file', 'Видео > 10 MB')
+                    if file.size > 55 * 1024 * 1024:
+                        self.add_error('file', 'Видео > 5 MB')
                     args = ['ffmpeg', '-i', 'pipe:0', '-ss', '00:00:01', '-vf', 'scale=170:200',
                             '-vframes', '1', '-f', 'image2pipe', '-c', 'mjpeg', 'pipe:1', '-loglevel', 'quiet']
                     file.seek(0)
                     content = subprocess.run(args, input=file.read(), stdout=subprocess.PIPE)
                     self.instance.video = self.files['file']
-                    self.instance.video_thumb = ContentFile(content=content.stdout, name=file.name)
+                    self.instance.video_thumb = ContentFile(content=content.stdout, name=Path(file.name).stem+'.jpg')
                 else:
                     self.add_error('file', 'Только Webm/mp4')
             else:
@@ -47,7 +47,7 @@ class PostForm(forms.ModelForm):
 
 
 class ThreadPostForm(PostForm):
-    image = forms.ImageField(required=True)
+    file = forms.FileField(required=True)
 
 
 def make_thumbnail(inmemory_image):
