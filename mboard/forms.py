@@ -19,7 +19,7 @@ class PostForm(forms.ModelForm):
 
     class Meta:
         model = Post
-        fields = ['poster', 'text', 'threadnum', 'image']
+        fields = ['poster', 'text', 'threadnum']
 
     def clean_file(self):
         if self.cleaned_data['file']:
@@ -32,14 +32,16 @@ class PostForm(forms.ModelForm):
                 self.instance.thumbnail = make_thumbnail(self.files['file'])
             elif 'video' in mime_type:
                 if 'webm' in mime_type or 'mp4' in mime_type:
-                    if file.size > 55 * 1024 * 1024:
+                    if file.size > 5 * 1024 * 1024:
                         self.add_error('file', 'Видео > 5 MB')
-                    args = ['ffmpeg', '-i', 'pipe:0', '-ss', '00:00:01', '-vf', 'scale=170:200',
+                    args = ['ffmpeg', '-i', 'pipe:0', '-ss', '00:00:01', '-vf', 'scale=150:120',
                             '-vframes', '1', '-f', 'image2pipe', '-c', 'mjpeg', 'pipe:1', '-loglevel', 'quiet']
                     file.seek(0)
-                    content = subprocess.run(args, input=file.read(), stdout=subprocess.PIPE)
+                    process = subprocess.run(args, input=file.read(), stdout=subprocess.PIPE)
+                    if process.returncode != 0:
+                        self.add_error('file', 'Ошибка загрузки')
                     self.instance.video = self.files['file']
-                    self.instance.video_thumb = ContentFile(content=content.stdout, name=Path(file.name).stem+'.jpg')
+                    self.instance.video_thumb = ContentFile(content=process.stdout, name=Path(file.name).stem+'.jpg')
                 else:
                     self.add_error('file', 'Только Webm/mp4')
             else:

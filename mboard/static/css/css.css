@@ -35,7 +35,6 @@ body {
     display: table;
     background-color: #282A2E;
     padding: 10px;
-    /*font-size: large;*/
     margin-top: 15px;
 }
 
@@ -68,7 +67,6 @@ body {
 .opPostHeader {
     color: darkgray;
     /*display: inline;*/
-    /*font-size: small;*/
 }
 
 .postHeader {
@@ -171,6 +169,7 @@ summary {
 
 textarea {
     background-color: #282A2E;
+    font-size: inherit;
 }
 
 #id_text {
