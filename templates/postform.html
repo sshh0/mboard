@@ -3,11 +3,12 @@
   <form id="postForm" action="" method="post" enctype="multipart/form-data">
     <div style="display: flex;">
       {{ form.poster }}
-      <button style="float: right" type="submit">Отправить</button>
+      <button id='post-frm-btn' style="float: right" type="submit">Отправить</button>
     </div>
     {{ form.text }}
     {{ form.captcha }}
     {{ form.file }}
     {% csrf_token %}
+    <div hidden class="errorlist">Ошибка в капче</div>
   </form>
 </details>

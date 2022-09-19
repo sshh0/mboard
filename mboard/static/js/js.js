@@ -20,6 +20,31 @@ if (!document.querySelector('.container').matches(".main, .captcha-error")) {
         elmnt.addEventListener('click', onClick);
     }));
     insertEmbedVideoButton();
+    document.getElementById('postForm').onsubmit = ajaxCaptchaValidation
+    document.getElementById('quickPostForm').onsubmit = ajaxCaptchaValidation
+}
+
+function ajaxCaptchaValidation(ev) {
+    ev.preventDefault()
+    let hash = ev.target.querySelector('#id_captcha_0').value;
+    let captcha = ev.target.querySelector('#id_captcha_1').value;
+    const url = `${window.location.origin}/captcha_val/?` + new URLSearchParams({
+        'hash': hash,
+        'captcha': captcha,
+    });
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+        }
+    }).then(r => r.json())
+        .then(json => {
+            if (json.status === 1) {
+                ev.target.submit()
+            } else {
+                ev.target.querySelector('.errorlist').hidden = false;
+            }
+        })
 }
 
 function expandVideo(click) {
@@ -43,7 +68,6 @@ function expandVideo(click) {
         spanBtn.remove();
     });
 }
-
 
 if (!document.querySelector('.container').matches(".main")) {
     captcha();
@@ -169,7 +193,7 @@ function captcha() {
                     "X-Requested-With": "XMLHttpRequest",
                 }
             })
-                .then((res) => res.json())
+                .then((r) => r.json())
                 .then(json => {
                     form.querySelector("input[name='captcha_0']").value = json.key;
                     form.querySelector(".captcha").src = json['image_url'];
@@ -196,7 +220,7 @@ function addTooltip(quoteElmnt, loadAndShow = false) {
             // showOnCreate: true,
             // interactive: true,
             content: template.content.firstChild,
-            placement: 'right-end', //top
+            placement: 'top', //right-end
             maxWidth: 800,
             animation: false,
             appendTo: quoteElmnt.parentNode,
@@ -273,7 +297,7 @@ function fetchNewPosts() {
     function getLastPostDate() {
         const timestamp = lastLoadedPost.querySelector('.date').dataset.unixtime;
         const lastPostDate = new Date(timestamp * 1000);  //milliseconds to seconds
-        // lastPostDate.setSeconds(lastPostDate.getSeconds() +1);
+        lastPostDate.setSeconds(lastPostDate.getSeconds() + 1);
         return lastPostDate.toUTCString();
 
     }

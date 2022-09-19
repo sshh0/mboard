@@ -11,10 +11,10 @@ from pathlib import Path
 
 
 class PostForm(forms.ModelForm):
-    text = forms.CharField(error_messages={'required': 'Enter the message'}, min_length=1, widget=forms.Textarea())
+    text = forms.CharField(error_messages={'required': 'Введите сообщение'}, min_length=1, widget=forms.Textarea())
     poster = forms.CharField(required=False, empty_value='Анон', widget=forms.TextInput(attrs={'placeholder': 'Анон'}))
     threadnum = forms.IntegerField(required=False)
-    captcha = CaptchaField()
+    captcha = CaptchaField(error_messages={'invalid': 'Капча введена неверно'})
     file = forms.FileField(required=False)
 
     class Meta:

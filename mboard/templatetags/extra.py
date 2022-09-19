@@ -41,8 +41,8 @@ def color_quoted_text(post_string):
 def insert_links(post_string, thread, posts_ids):
     found_quote = re.findall(pattern='&gt;&gt;[0-9]+', string=post_string)
     if found_quote:
-        html = "<a class='quote' data-quote='{data_id}' href='{link}'>>>{post_id}</a>"
         for quote in found_quote:
+            html = "<a class='quote' data-quote='{data_id}' href='{link}'>>>{post_id}</a>"
             quote_num = quote.strip('&gt;&gt;')
             post = Post.objects.filter(pk=quote_num).first()  # no error is raised if Null unlike get()
             if post:  # if the post exists, and not some random number

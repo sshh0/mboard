@@ -1,5 +1,6 @@
 from email.utils import parsedate_to_datetime
 from random import randint
+from captcha.models import CaptchaStore
 from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.http import JsonResponse
 from django.template.loader import render_to_string
@@ -92,3 +93,14 @@ def random_digit_challenge():
     return ret, ret
 
 
+def captcha_ajax_validation(request):
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        cs = CaptchaStore.objects.filter(response=request.GET['captcha'], hashkey=request.GET['hash'])
+        if cs:
+            json_data = {'status': 1}
+        else:
+            json_data = {'status': 0}
+        return JsonResponse(json_data)
+    else:
+        json_data = {'status': 0}
+        return JsonResponse(json_data)

@@ -2,3 +2,4 @@ Django~=4.1
 django-simple-captcha~=0.5.17
 python-dotenv~=0.21.0
 python-magic~=0.4.27
+Pillow~=9.2.0

@@ -170,6 +170,7 @@ summary {
 textarea {
     background-color: #282A2E;
     font-size: inherit;
+    font-family: inherit;
 }
 
 #id_text {
@@ -319,4 +320,10 @@ hr {
 .video-thumb {
     margin-right: 25px;
     border: 1px dashed;
+}
+
+@media only screen and (max-width: 400px) {
+    .text {
+        overflow: visible;
+    }
 }
