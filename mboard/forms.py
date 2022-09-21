@@ -10,16 +10,24 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from pathlib import Path
 
 
-class PostForm(forms.ModelForm):
-    text = forms.CharField(error_messages={'required': 'Введите сообщение'}, min_length=1, widget=forms.Textarea())
+class PostForm(forms.ModelForm):  # fields defined declaratively do not draw their
+    file = forms.FileField(required=False)  # attributes like max_length or required from the corresponding model
+    text = forms.CharField(error_messages={'required': 'Введите сообщение'}, required=False, max_length=4000,
+                           widget=forms.Textarea())
     poster = forms.CharField(required=False, empty_value='Анон', widget=forms.TextInput(attrs={'placeholder': 'Анон'}))
     threadnum = forms.IntegerField(required=False)
     captcha = CaptchaField(error_messages={'invalid': 'Капча введена неверно'})
-    file = forms.FileField(required=False)
 
     class Meta:
         model = Post
         fields = ['poster', 'text', 'threadnum']
+
+    def clean(self):
+        # "By the time the form’s clean() method is called, all the individual field clean methods will have been run"
+        cleaned_data = super().clean()
+        if not cleaned_data.get('file') and not cleaned_data.get('text'):  # with get no error raised if no such field
+            raise forms.ValidationError('Заполните форму')
+        return self.cleaned_data
 
     def clean_file(self):
         if self.cleaned_data['file']:
@@ -27,25 +35,26 @@ class PostForm(forms.ModelForm):
             mime_type = from_buffer(file.read(), mime=True)
             if 'image' in mime_type:
                 if file.size > 1 * 1024 * 1024:
-                    self.add_error('file', 'Картинка > 1 MB')
+                    raise forms.ValidationError('Картинка > 1 MB')
                 self.instance.image = self.files['file']
                 self.instance.thumbnail = make_thumbnail(self.files['file'])
             elif 'video' in mime_type:
                 if 'webm' in mime_type or 'mp4' in mime_type:
                     if file.size > 5 * 1024 * 1024:
-                        self.add_error('file', 'Видео > 5 MB')
+                        raise forms.ValidationError('file', 'Видео > 5 MB')
                     args = ['ffmpeg', '-i', 'pipe:0', '-ss', '00:00:01', '-vf', 'scale=150:120',
                             '-vframes', '1', '-f', 'image2pipe', '-c', 'mjpeg', 'pipe:1', '-loglevel', 'quiet']
                     file.seek(0)
                     process = subprocess.run(args, input=file.read(), stdout=subprocess.PIPE)
                     if process.returncode != 0:
-                        self.add_error('file', 'Ошибка загрузки')
+                        raise forms.ValidationError('Ошибка загрузки')
                     self.instance.video = self.files['file']
-                    self.instance.video_thumb = ContentFile(content=process.stdout, name=Path(file.name).stem+'.jpg')
+                    self.instance.video_thumb = ContentFile(content=process.stdout, name=Path(file.name).stem + '.jpg')
                 else:
-                    self.add_error('file', 'Только Webm/mp4')
+                    raise forms.ValidationError('Только Webm/mp4')
             else:
-                self.add_error('file', 'Только изображения и webm/mp4')
+                raise forms.ValidationError('Только изображения и webm/mp4')
+            return file  # "Always return a value to use as the new cleaned data, even if this method didn't change it"
 
 
 class ThreadPostForm(PostForm):

@@ -5,7 +5,7 @@ from django.core.validators import MinLengthValidator, FileExtensionValidator
 class Post(models.Model):
     thread = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
     poster = models.CharField(max_length=35, default='Anon')
-    text = models.TextField(max_length=4501, blank=False)
+    text = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
     image = models.ImageField(upload_to='post/images/', blank=True, verbose_name='Image')
     thumbnail = models.ImageField(upload_to='post/thumbnails/', blank=True)

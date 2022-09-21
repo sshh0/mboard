@@ -1,6 +1,7 @@
 "use strict";
 
 if (!document.querySelector('.container').matches(".main, .captcha-error")) {
+    if (document.querySelectorAll('.page-link').length === 1) document.querySelector('.page-link').hidden = true
     showQuickPostForm();
     dragPostForm(document.getElementById("quickPostHeader"));
     ApplyJsOnFetchedElements();
@@ -9,9 +10,6 @@ if (!document.querySelector('.container').matches(".main, .captcha-error")) {
     addRepliesToPost();
     altEnterFormSubmit();
     document.querySelector('.js-fetch-new-posts')?.addEventListener('click', fetchNewPosts);
-    if (document.querySelectorAll('.page-link').length === 1) {
-        document.querySelector('.page-link').hidden = true;
-    }
     document.querySelectorAll('.quote, .reply').forEach((elmnt) => elmnt.addEventListener('mouseover', function (event) {
         if (!event.target.hasOwnProperty('_tippy')) {
             const loadAndShow = true;
@@ -20,9 +18,19 @@ if (!document.querySelector('.container').matches(".main, .captcha-error")) {
         elmnt.addEventListener('click', onClick);
     }));
     insertEmbedVideoButton();
-    document.getElementById('postForm').onsubmit = ajaxCaptchaValidation
     document.getElementById('quickPostForm').onsubmit = ajaxCaptchaValidation
+
 }
+
+captcha();
+document.getElementById('postForm').onsubmit = ajaxCaptchaValidation
+document.querySelectorAll('.clear-file-btn').forEach((btn) => btn.addEventListener('click', function(ev) {
+    ev.target.previousElementSibling.value = '';
+    btn.style.visibility = 'hidden';
+}))
+document.querySelectorAll('#id_file').forEach((file) => file.addEventListener('change', function(ev){
+    ev.target.nextElementSibling.style.visibility='visible';
+}))
 
 function ajaxCaptchaValidation(ev) {
     ev.preventDefault()
@@ -67,10 +75,6 @@ function expandVideo(click) {
         expandedVideo.remove();
         spanBtn.remove();
     });
-}
-
-if (!document.querySelector('.container').matches(".main")) {
-    captcha();
 }
 
 const onClick = twoTapsOnTouchDevices();

@@ -4,7 +4,7 @@
     margin-bottom: 250px;
     color: white;
     font-family: sans-serif;
-    font-size: 15px;
+    font-size: 14px;
 }
 
 .footer {
@@ -109,7 +109,7 @@ details {
 }
 
 summary {
-    margin-left: 40%;
+    margin-left: 45%;
     margin-bottom: 2%;
     list-style: none;
     display: inline;
@@ -118,12 +118,13 @@ summary {
 #postForm {
     color: white;
     width: 400px;
-    margin: auto;
+    margin: 2% auto auto;
 }
 
 #id_file {
-    display: block;
+    /*display: block;*/
     clear: both;
+    width: 200px;
 }
 
 #id_captcha_1 {
@@ -203,6 +204,8 @@ textarea {
     color: red;
     text-align: center;
     clear: both;
+    list-style: none;
+    margin-bottom: 1%;
 }
 
 a {
@@ -215,7 +218,7 @@ a {
 }
 
 #showFormButton {
-    font-size: large;
+    font-size: x-large;
     color: cornflowerblue;
     cursor: pointer;
     /*display: block;*/
@@ -326,4 +329,13 @@ hr {
     .text {
         overflow: visible;
     }
+}
+
+.clear-file-btn {
+    background-color: inherit;
+    border: none;
+    font-size: 15px;
+    padding: 0 10px 0 10px;
+    cursor: pointer;
+    visibility: hidden;
 }

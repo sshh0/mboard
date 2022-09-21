@@ -10,9 +10,9 @@
 </head>
 <body>
 {% include 'header.html' %}
-{{ form.file.errors }}
-{{ form.text.errors }}
-{{ form.captcha.errors }}
+{% for field, error in form.errors.items %}
+  <div class="errorlist">{{ error.as_text }}</div>
+{% endfor %}
 {% block content %}
 {% endblock content %}
 {% include 'footer.html' %}

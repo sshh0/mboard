@@ -39,7 +39,7 @@ def list_threads(request, board, pagenum=1):
 
 def get_thread(request, thread_id, board):
     if request.method == 'POST':
-        form = PostForm(data=request.POST, files=request.FILES)
+        form = PostForm(data=request.POST, files=request.FILES, use_required_attribute=False)
         if form.is_valid():
             new_post = form.save(commit=False)
             new_post.thread_id = thread_id

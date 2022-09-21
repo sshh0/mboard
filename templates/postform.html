@@ -1,3 +1,4 @@
+{% load static %}
 <details>
   <summary><span onclick="setTimeout(focusTextArea, 5)" id="showFormButton">{{ postformbutton }}</span></summary>
   <form id="postForm" action="" method="post" enctype="multipart/form-data">
@@ -7,7 +8,9 @@
     </div>
     {{ form.text }}
     {{ form.captcha }}
-    {{ form.file }}
+    <div style="clear: both">{{ form.file }}
+      <button class="clear-file-btn" type="button">❌</button>
+    </div>
     {% csrf_token %}
     <div hidden class="errorlist">Ошибка в капче</div>
   </form>

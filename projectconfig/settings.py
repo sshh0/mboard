@@ -10,7 +10,7 @@ dotenv_config = dotenv_values(".env")
 SECRET_KEY = dotenv_config['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = dotenv_config['DEBUG']
+DEBUG = False
 
 ALLOWED_HOSTS = dotenv_config['ALLOWED_HOSTS'].split()
 

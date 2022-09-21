@@ -7,11 +7,13 @@
   {% csrf_token %}
   <div style="display: flex;">
     {{ form.poster }}
-    <button id='quickPostBtn' style="float: right" type="submit">Отправить</button>
+    <button id='quick-post-btn' style="float: right" type="submit">Отправить</button>
   </div>
   {{ form.text }}
   {{ form.threadnum.as_hidden }}
   {{ form.captcha }}
-  {{ form.file }}
+  <div style="clear: both">{{ form.file }}
+    <button class="clear-file-btn" type="button">❌</button>
+  </div>
   <div hidden class="errorlist">Ошибка в капче</div>
 </form>
