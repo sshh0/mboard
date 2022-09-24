@@ -68,6 +68,7 @@ function submitForm(ev) {
                 if (r.status === 200) {
                     fetchNewPosts();
                     formElmnt.reset();
+                    formElmnt.hidden = true;
                     formElmnt.querySelector('.errorlist').hidden = true;
                     formElmnt.querySelector('.captcha').click();
                     formElmnt.querySelector('.clear-file-btn').style.visibility = 'hidden';
@@ -216,6 +217,8 @@ function captcha() {
     const url = `${window.location.origin}/captcha/refresh/`;
     document.querySelectorAll('img.captcha').forEach((captcha) => captcha.addEventListener('click', function (el) {
             const form = el.target.closest('form');
+            form.querySelector('#id_captcha_1').value = '';
+            form.querySelector('#id_captcha_1').focus();
             fetch(url, {
                 method: "GET",
                 headers: {
@@ -232,7 +235,7 @@ function captcha() {
     ));
 }
 
-function addTooltip(quoteElmnt, loadAndShow = false) {
+function addTooltip(quoteElmnt, loadAndShow=false) {
     let tooltip;
     try {
         tooltip = document.querySelector(`[data-id='${quoteElmnt.dataset.quote}']`).outerHTML;
@@ -280,16 +283,20 @@ function addRepliesToPost() {
         if (quote.dataset.quote !== previousQuote || quote.closest('article').dataset.id !== previousPostId) {
             previousQuote = quote.dataset.quote;
             previousPostId = quote.closest('article').dataset.id;
-            const postId = quote.closest('article').dataset.id;
-            const text = '>>' + quote.closest('article').dataset.id + ' ';
-            const template = document.createElement('template');
-            template.innerHTML = `<span><a class='reply' data-quote=${postId} href='#id${postId}'>${text}</a></span>`;
-            const quotedPost = document.querySelector(`[data-id="${quote.dataset.quote}"]`);
-            if (quotedPost !== null) {
-                quotedPost.querySelector('.replies').appendChild(template.content.firstChild);
-            }
+            constructReplyElmnt(quote)
         }
     });
+}
+
+function constructReplyElmnt(quote) {
+    const postId = quote.closest('article').dataset.id;
+    const text = '>>' + quote.closest('article').dataset.id + ' ';
+    const template = document.createElement('template');
+    template.innerHTML = `<span><a class='reply' data-quote=${postId} href='#id${postId}'>${text}</a></span>`;
+    const quotedPost = document.querySelector(`[data-id="${quote.dataset.quote}"]`);
+    if (quotedPost !== null) {
+        quotedPost.querySelector('.replies').appendChild(template.content.firstChild);
+    }
 }
 
 function fetchNewPosts() {
@@ -340,7 +347,9 @@ function ApplyJsOnFetchedElements() {
                 node.querySelector('.video-thumb')?.addEventListener('click', expandVideo);
                 node.querySelector('.postLink')?.addEventListener('click', setTextValue);
                 node.querySelectorAll('.quote')?.forEach((quote) => {
+                    constructReplyElmnt(quote);
                     addTooltip(quote);
+                    addTooltip(document.querySelector(`[data-id='${quote.dataset.quote}'] .reply`));
                 });
             }
         });
