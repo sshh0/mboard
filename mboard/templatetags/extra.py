@@ -42,15 +42,15 @@ def insert_links(post_string, thread, posts_ids):
     found_quote = re.findall(pattern='&gt;&gt;[0-9]+', string=post_string)
     if found_quote:
         for quote in found_quote:
-            html = "<a class='quote' data-quote='{data_id}' href='{link}'>>>{post_id}</a>"
+            html = "<a class='quote' data-quote='{}' href='{}'>>>{}</a>"
             quote_num = quote.strip('&gt;&gt;')
             post = Post.objects.filter(pk=quote_num).first()  # no error is raised if Null unlike get()
             if post:  # if the post exists, and not some random number
-                if post.thread is None:
-                    html = html.format(data_id=quote_num, link=post.get_absolute_url(), post_id=quote_num + ' (OP)')
-                if post.pk not in posts_ids[thread]:  # post exists but in another thread
-                    html = html.format(data_id=quote_num, link=post.get_absolute_url(), post_id=quote_num + ' →')
+                if post.pk not in posts_ids:  # post exists but in another thread
+                    html = html.format(quote_num, post.get_absolute_url(), quote_num + ' →')
                 else:
-                    html = html.format(data_id=quote_num, link=post.get_absolute_url(), post_id=quote_num)
+                    if post.thread is None:
+                        html = html.format(quote_num, post.get_absolute_url()+f'#id{quote_num}', quote_num + ' (OP)')
+                    html = html.format(quote_num, post.get_absolute_url(), quote_num)
                 post_string = post_string.replace(quote, html)
     return post_string

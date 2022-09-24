@@ -1,6 +1,14 @@
 "use strict";
 
-if (!document.querySelector('.container').matches(".main, .captcha-error")) {
+const quickPostForm = document.getElementById('quickPostForm');
+const postsLinks = document.querySelectorAll('.post .postHeader .postLink, .opPost > .opPostHeader .postLink');
+const quickPostFormTextArea = document.querySelector('#quickPostForm > textarea');
+
+if (document.querySelector('.container').classList.contains('threadPage')) {
+    for (let form of document.getElementsByTagName('form')) form.onsubmit = submitForm;
+}
+
+if (!document.querySelector('.container').matches(".captcha-error")) {
     if (document.querySelectorAll('.page-link').length === 1) document.querySelector('.page-link').hidden = true
     showQuickPostForm();
     dragPostForm(document.getElementById("quickPostHeader"));
@@ -18,41 +26,58 @@ if (!document.querySelector('.container').matches(".main, .captcha-error")) {
         elmnt.addEventListener('click', onClick);
     }));
     insertEmbedVideoButton();
-    document.getElementById('quickPostForm').onsubmit = ajaxCaptchaValidation
-
 }
 
 captcha();
-document.getElementById('postForm').onsubmit = ajaxCaptchaValidation
-document.querySelectorAll('.clear-file-btn').forEach((btn) => btn.addEventListener('click', function(ev) {
+document.querySelectorAll('.clear-file-btn').forEach((btn) => btn.addEventListener('click', function (ev) {
     ev.target.previousElementSibling.value = '';
     btn.style.visibility = 'hidden';
 }))
-document.querySelectorAll('#id_file').forEach((file) => file.addEventListener('change', function(ev){
-    ev.target.nextElementSibling.style.visibility='visible';
+document.querySelectorAll('#id_file').forEach((file) => file.addEventListener('change', function (ev) {
+    ev.target.nextElementSibling.style.visibility = 'visible';
 }))
 
-function ajaxCaptchaValidation(ev) {
+function submitForm(ev) {
     ev.preventDefault()
-    let hash = ev.target.querySelector('#id_captcha_0').value;
-    let captcha = ev.target.querySelector('#id_captcha_1').value;
-    const url = `${window.location.origin}/captcha_val/?` + new URLSearchParams({
-        'hash': hash,
-        'captcha': captcha,
-    });
-    fetch(url, {
-        method: 'GET',
-        headers: {
-            "X-Requested-With": "XMLHttpRequest",
-        }
-    }).then(r => r.json())
-        .then(json => {
-            if (json.status === 1) {
-                ev.target.submit()
-            } else {
-                ev.target.querySelector('.errorlist').hidden = false;
-            }
-        })
+    const formElmnt = ev.target;
+    let form = new FormData(formElmnt);
+    if (form.get('file').name === "" && form.get('text') === "") {
+        formElmnt.querySelector('.errorlist').innerText = 'Заполните форму';
+        formElmnt.querySelector('.errorlist').hidden = false;
+    } else {
+        let hash = formElmnt.querySelector('#id_captcha_0').value;
+        let captcha = formElmnt.querySelector('#id_captcha_1').value;
+        const url = `${window.location.origin}/captcha_val/?` + new URLSearchParams({
+            'hash': hash,
+            'captcha': captcha,
+        });
+        fetch(url)
+            .then(resp => resp.json())
+            .then(json => {
+                if (json.status === 1)
+                    return fetch(window.location.origin + '/posting/', {
+                        body: form,
+                        method: "POST",
+                        headers: {'X-Requested-With': 'XMLHttpRequest',},
+                    })
+                else {
+                    throw new Error('Ошибка в капче');
+                }
+            })
+            .then(r => {
+                if (r.status === 200) {
+                    fetchNewPosts();
+                    formElmnt.reset();
+                    formElmnt.querySelector('.errorlist').hidden = true;
+                    formElmnt.querySelector('.captcha').click();
+                    formElmnt.querySelector('.clear-file-btn').style.visibility = 'hidden';
+                } else throw new Error('Ошибка постинга');
+            })
+            .catch((er) => {
+                formElmnt.querySelector('.errorlist').innerText = er;
+                formElmnt.querySelector('.errorlist').hidden = false;
+            })
+    }
 }
 
 function expandVideo(click) {
@@ -293,11 +318,6 @@ function fetchNewPosts() {
             }
         });
 
-    function insert(newPosts) {
-        const elmntlist = document.getElementsByTagName('article');
-        elmntlist[elmntlist.length - 1].insertAdjacentHTML("afterend", newPosts);
-    }
-
     function getLastPostDate() {
         const timestamp = lastLoadedPost.querySelector('.date').dataset.unixtime;
         const lastPostDate = new Date(timestamp * 1000);  //milliseconds to seconds
@@ -307,11 +327,18 @@ function fetchNewPosts() {
     }
 }
 
+function insert(newPosts) {
+    const elmntslist = document.getElementsByTagName('article');
+    elmntslist[elmntslist.length - 1].insertAdjacentHTML("afterend", newPosts);
+}
+
 function ApplyJsOnFetchedElements() {
     function callback(mutationList) {
         mutationList[0].addedNodes.forEach((node) => {
             if (node.className === 'post') {
                 node.querySelector('.image')?.addEventListener('click', expandImage);
+                node.querySelector('.video-thumb')?.addEventListener('click', expandVideo);
+                node.querySelector('.postLink')?.addEventListener('click', setTextValue);
                 node.querySelectorAll('.quote')?.forEach((quote) => {
                     addTooltip(quote);
                 });
@@ -343,45 +370,36 @@ function expandImage(click) {
 }
 
 function showQuickPostForm() {
-    const quickPostForm = document.getElementById('quickPostForm');
-    const postsLinks = document.querySelectorAll('.post .postHeader .postLink, .opPost > .opPostHeader .postLink');
-    const quickPostFormTextArea = document.querySelector('#quickPostForm > textarea');
-    // const postForm = document.querySelector('#postForm');
     quickPostForm.elements['id_file'].required = false;
     for (let i = 0; i < postsLinks.length; i++) {
-        postsLinks[i].addEventListener('click', setTextValue
-        );
+        postsLinks[i].addEventListener('click', setTextValue);
     }
-
-    function setTextValue(e) {
-        e.preventDefault();
-        quickPostForm.hidden = false;
-        if (!quickPostForm.hidden) {
-            {
-                quickPostFormTextArea.setRangeText(`>>` + this.closest('article').dataset.id + '\n');
-                quickPostFormTextArea.selectionStart = quickPostFormTextArea.selectionEnd = quickPostFormTextArea.value.length;
-                try {
-                    if (window.getSelection().anchorNode.parentElement.closest('article').id === this.closest('article').id) {
-                        const selectedText = window.getSelection().toString().trimEnd();
-                        quickPostFormTextArea.value += '>';
-                        quickPostFormTextArea.value += selectedText.replace(/\n/g, '\n>');
-                        quickPostFormTextArea.value += '\n';
-                    }
-                } catch (e) {
-                }
-                quickPostForm.elements['id_threadnum'].value = this.closest('section').dataset.threadid;
-                // if (!postForm.hidden) {
-                //     postForm.value = this.closest('section').dataset['threadid'];
-                // }
-                quickPostFormTextArea.focus();
-            }
-        }
-    }
-
     document.getElementById('closebutton').addEventListener('click', () => {
         quickPostForm.hidden = true;
         quickPostFormTextArea.value = '';
     });
+}
+
+function setTextValue(e) {
+    e.preventDefault();
+    quickPostForm.hidden = false;
+    if (!quickPostForm.hidden) {
+        {
+            quickPostFormTextArea.setRangeText(`>>` + this.closest('article').dataset.id + '\n');
+            quickPostFormTextArea.selectionStart = quickPostFormTextArea.selectionEnd = quickPostFormTextArea.value.length;
+            try {
+                if (window.getSelection().anchorNode.parentElement.closest('article').id === this.closest('article').id) {
+                    const selectedText = window.getSelection().toString().trimEnd();
+                    quickPostFormTextArea.value += '>';
+                    quickPostFormTextArea.value += selectedText.replace(/\n/g, '\n>');
+                    quickPostFormTextArea.value += '\n';
+                }
+            } catch (e) {
+            }
+            quickPostForm.elements['id_thread_id'].value = this.closest('section').dataset.threadid;
+            quickPostFormTextArea.focus();
+        }
+    }
 }
 
 function dragPostForm(elmnt) {

@@ -15,12 +15,12 @@ class PostForm(forms.ModelForm):  # fields defined declaratively do not draw the
     text = forms.CharField(error_messages={'required': 'Введите сообщение'}, required=False, max_length=4000,
                            widget=forms.Textarea())
     poster = forms.CharField(required=False, empty_value='Анон', widget=forms.TextInput(attrs={'placeholder': 'Анон'}))
-    threadnum = forms.IntegerField(required=False)
+    thread_id = forms.IntegerField(required=False)
     captcha = CaptchaField(error_messages={'invalid': 'Капча введена неверно'})
 
     class Meta:
         model = Post
-        fields = ['poster', 'text', 'threadnum']
+        fields = ['poster', 'text', 'thread_id']
 
     def clean(self):
         # "By the time the form’s clean() method is called, all the individual field clean methods will have been run"
