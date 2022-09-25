@@ -3,8 +3,8 @@
   <div class="opPostHeader">
     <span>
       <span class="poster"> {{ thread.poster }}</span>
-      <span class="date" data-unixtime="{{ thread.date|date:"U" }}">{{ thread.date|date:'d/m/Y, H:i:s' }}</span>№:
-      <a class="postLink" href="#id{{ thread.pk }}">{{ thread.pk }}</a>
+      <span class="date" data-unixtime="{{ thread.date|date:"U" }}">{{ thread.date|date:'d/m/Y, H:i:s' }}</span>
+      №:<a class="postLink" href="#id{{ thread.pk }}">{{ thread.pk }}</a>
     </span>
     <a class="threadlink" href="{{ thread.get_absolute_url }}">В тред</a>
   </div>
@@ -30,7 +30,7 @@
       </a>
     </div>
   {% endif %}
-  <div class="text">{% customize_post_string thread.text thread posts_ids %}
+  <div class="text">{% customize_post_string thread.text thread.pk posts_ids %}
     <div class="replies"></div>
   </div>
 </article>

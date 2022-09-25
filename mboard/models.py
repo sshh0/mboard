@@ -24,7 +24,7 @@ class Post(models.Model):
         else:
             return f'/{self.board}/thread/{self.thread.pk}/#id{self.pk}'
 
-    def all_posts_ids_in_thread(self):
+    def posts_ids(self):
         ls = list(self.post_set.values_list('pk', flat=True))
         ls.append(int(self.pk))
         return ls

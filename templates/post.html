@@ -24,6 +24,6 @@
       <a href="{{ post.image.url }}"><img loading="lazy" class="image" src="{{ post.thumbnail.url }}" alt=""></a>
     </div>
   {% endif %}
-  <div class="text">{% customize_post_string post.text thread posts_ids %}</div>
+  <div class="text">{% customize_post_string post.text thread.pk posts_ids %}</div>
   <div class="replies"></div>
 </article>

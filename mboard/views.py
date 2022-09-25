@@ -31,7 +31,7 @@ def list_threads(request, board, pagenum=1):
     for thread in threads:
         posts_to_display = thread.post_set.all().order_by('-date')[:4]
         threads_dict[thread] = reversed(posts_to_display)
-        posts_ids[thread] = thread.all_posts_ids_in_thread()
+        posts_ids[thread.pk] = thread.posts_ids()
     context = {'threads': threads_dict, 'form': form, 'paginator': paginator, 'page_obj': threads, 'board': board,
                'posts_ids': posts_ids}
     return render(request, 'list_threads.html', context)
@@ -53,7 +53,7 @@ def get_thread(request, thread_id, board):
     form = PostForm(initial={'thread_id': thread_id})
     board = Board.objects.get(board_name=board)
     thread = board.post_set.get(pk=thread_id)
-    context = {'thread': thread, 'posts_ids': thread.all_posts_ids_in_thread(), 'form': form, 'board': board}
+    context = {'thread': thread, 'posts_ids': {thread.pk: thread.posts_ids()}, 'form': form, 'board': board}
     return render(request, 'thread.html', context)
 
 
@@ -76,9 +76,9 @@ def ajax_tooltips_onhover(request, thread_id, **kwargs):
         if 'post_id' in kwargs:
             post = Post.objects.get(pk=kwargs['post_id'])
             thread = Post.objects.get(pk=thread_id)
-            posts_ids = {thread: thread.all_posts_ids_in_thread()}
+            posts_ids = {thread: thread.posts_ids()}
             jsn = render_to_string(request=request, template_name='post.html',
-                                   context={'post': post, 'thread': thread, 'posts_ids': posts_ids})
+                                   context={'post': post, 'thread': thread, 'posts_ids': {thread.pk: thread.posts_ids()}})
             return JsonResponse(jsn, safe=False)
 
 
@@ -91,8 +91,7 @@ def ajax_load_new_posts(request, thread_id, **kwargs):  # don't proceed if no ne
 def get_new_posts(request, thread):
     last_post_date = parsedate_to_datetime(request.headers['If-Modified-Since'])
     posts = thread.post_set.all().filter(date__gt=last_post_date)
-    # posts_ids = {thread: thread.all_posts_ids_in_thread()}
-    posts_ids = thread.all_posts_ids_in_thread()
+    posts_ids = {thread.pk: thread.posts_ids()}
     html_rendered_string = ''
     if posts:
         for post in posts:
