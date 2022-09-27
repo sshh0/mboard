@@ -39,7 +39,8 @@ body {
 
 .postQuote {
     display: table;
-    background-color: #282A2E;
+    background: url('muon_posts.jpg') #292825;
+
 }
 
 .threadPage .threadlink {
@@ -54,7 +55,6 @@ body {
 .text {
     overflow: auto;
     word-wrap: anywhere;
-
 }
 
 .thread {
@@ -111,9 +111,19 @@ summary {
 }
 
 #postForm {
-    color: white;
     width: 400px;
     margin: 2% auto auto;
+}
+
+#quickPostForm {
+    position: fixed;
+    left: 30%;
+    top: 40%;
+}
+
+form {
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #id_file {
@@ -124,28 +134,10 @@ summary {
 
 #id_captcha_1 {
     line-height: 3;
-    border: 1px solid gray;
-    color: white;
-    padding-left: 10px;
-    outline: none;
-    background-color: #282a2e;
 }
 
 .captcha {
     float: left
-}
-
-
-#quickPostForm {
-    position: fixed;
-    left: 30%;
-    top: 40%;
-    background-color: #282a2e;
-    margin-left: auto;
-    margin-right: auto;
-    color: white;
-    border: 1px solid dimgray;
-
 }
 
 @media only screen and (hover: none) and (pointer: coarse) {
@@ -164,35 +156,30 @@ summary {
 }
 
 textarea {
-    background-color: #282A2E;
+    background: #3E3C38 url('muon_inputs.jpg');
+    color: #FEC77D;
     font-size: inherit;
     font-family: inherit;
-}
-
-#id_text {
-    display: block;
-    border: none;
-    color: white;
-    resize: both;
-    min-width: 350px;
-    outline: none;;
-    border-bottom: 1px solid gray;
-}
-
-#id_poster {
-    background-color: #282a2e;
     outline: none;
-    color: white;
-    border: 1px solid dimgray;
-    width: 100%;
+    border: 1px solid gray ;
+    display: block;
 }
 
-#postForm div #id_poster {
-    width: 65%;
+input {
+    background: #3E3C38 url('muon_inputs.jpg');
+    outline: none;
+    color: #FEC77D;
+    border: 1px solid gray ;
+    flex-grow: 1;
 }
 
 #quickPostHeader {
     padding: 7px;
+    background: #3E3C38 url('muon_inputs.jpg')
+}
+
+.postHeader a {
+    color: inherit;
 }
 
 .errorlist {
@@ -208,9 +195,7 @@ a {
     text-decoration: none
 }
 
-.postHeader a {
-    color: inherit;
-}
+
 
 #showFormButton {
     font-size: large;
@@ -230,11 +215,9 @@ a {
 .tippy-content {
     font-size: 14px;
     /*white-space: pre-line;*/
-    /*min-height: 100px;*/
-    /*min-width: 250px;*/
-    border: 2px solid black;
-    background-color: #282A2E;
+    border: 1px solid #34352D;
     display: flex;
+    padding: 0;
 }
 
 .postcount {
@@ -250,18 +233,12 @@ hr {
 
 .navdiv-bottom a {
     margin-right: 5px;
-    background-color: inherit;
-    border: 1px solid gray;
     cursor: pointer;
-    padding: 2px;
 }
 
 .navdiv-top a {
     margin-right: 5px;
-    background-color: inherit;
-    border: 1px solid gray;
     cursor: pointer;
-    padding: 2px
 }
 
 .reply {

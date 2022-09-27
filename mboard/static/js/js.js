@@ -38,7 +38,7 @@ document.querySelectorAll('#id_file').forEach((file) => file.addEventListener('c
 }))
 
 function submitForm(ev) {
-    ev.preventDefault()
+    ev.preventDefault();
     const formElmnt = ev.target;
     let form = new FormData(formElmnt);
     if (form.get('file').name === "" && form.get('text') === "") {
@@ -68,7 +68,7 @@ function submitForm(ev) {
                 if (r.status === 200) {
                     fetchNewPosts();
                     formElmnt.reset();
-                    formElmnt.hidden = true;
+                    if (formElmnt.id === 'quickPostForm') formElmnt.hidden = true;
                     formElmnt.querySelector('.errorlist').hidden = true;
                     formElmnt.querySelector('.captcha').click();
                     formElmnt.querySelector('.clear-file-btn').style.visibility = 'hidden';
@@ -252,7 +252,7 @@ function addTooltip(quoteElmnt, loadAndShow=false) {
             // showOnCreate: true,
             // interactive: true,
             content: template.content.firstChild,
-            placement: 'top', //right-end
+            placement: 'auto-end', //top right-end
             maxWidth: 800,
             animation: false,
             appendTo: quoteElmnt.parentNode,
@@ -349,7 +349,7 @@ function ApplyJsOnFetchedElements() {
                 node.querySelectorAll('.quote')?.forEach((quote) => {
                     constructReplyElmnt(quote);
                     addTooltip(quote);
-                    addTooltip(document.querySelector(`[data-id='${quote.dataset.quote}'] .reply`));
+                    addTooltip(document.querySelector(`.reply[data-quote="${quote.closest('.post').dataset.id}"]`));
                 });
             }
         });
@@ -360,7 +360,6 @@ function ApplyJsOnFetchedElements() {
         observer.observe(elmnt, {childList: true});
     });
 }
-
 
 function expandImage(click) {
     click.preventDefault();
@@ -380,9 +379,7 @@ function expandImage(click) {
 
 function showQuickPostForm() {
     quickPostForm.elements['id_file'].required = false;
-    for (let i = 0; i < postsLinks.length; i++) {
-        postsLinks[i].addEventListener('click', setTextValue);
-    }
+    postsLinks.forEach((link) => link.addEventListener('click', setTextValue));
     document.getElementById('closebutton').addEventListener('click', () => {
         quickPostForm.hidden = true;
         quickPostFormTextArea.value = '';
@@ -393,7 +390,6 @@ function setTextValue(e) {
     e.preventDefault();
     quickPostForm.hidden = false;
     if (!quickPostForm.hidden) {
-        {
             quickPostFormTextArea.setRangeText(`>>` + this.closest('article').dataset.id + '\n');
             quickPostFormTextArea.selectionStart = quickPostFormTextArea.selectionEnd = quickPostFormTextArea.value.length;
             try {
@@ -407,7 +403,6 @@ function setTextValue(e) {
             }
             quickPostForm.elements['id_thread_id'].value = this.closest('section').dataset.threadid;
             quickPostFormTextArea.focus();
-        }
     }
 }
 
@@ -443,9 +438,9 @@ function focusTextArea() {
 }
 
 function altEnterFormSubmit() {
-    document.querySelectorAll('textarea').forEach((area) => area.addEventListener('keydown', (keyboardEv) => {
-        if (keyboardEv.altKey && keyboardEv.code === 'Enter') {
-            window.document.activeElement.parentElement.submit();
+    document.querySelectorAll('textarea').forEach((area) => area.addEventListener('keydown', (ev) => {
+        if (ev.altKey && ev.code === 'Enter') {  // form.submit() doesn't trigger 'submit' event (????)
+            ev.target.parentElement.querySelector('button[type="submit"]').click();
         }
     }));
 }
