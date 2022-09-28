@@ -28,7 +28,6 @@ body {
 
 }
 
-
 .post {
     display: table;
     background: url('muon_posts.jpg') #292825;
@@ -42,6 +41,7 @@ body {
     padding: 7px;
     background: url('muon_posts.jpg') #292825;
     color: #C6985C;
+    font-size: 15px;
 
 }
 
@@ -313,4 +313,9 @@ hr {
     padding: 0 10px 0 10px;
     cursor: pointer;
     visibility: hidden;
+}
+
+.func-btn {
+    color: grey;
+    cursor: pointer;
 }
