@@ -12,7 +12,7 @@ from pathlib import Path
 
 class PostForm(forms.ModelForm):  # fields defined declaratively do not draw their
     file = forms.FileField(required=False)  # attributes like max_length or required from the corresponding model
-    text = forms.CharField(error_messages={'required': 'Введите сообщение'}, required=False, max_length=4000,
+    text = forms.CharField(error_messages={'required': 'Введите сообщение'}, required=False, max_length=8000,
                            widget=forms.Textarea())
     poster = forms.CharField(required=False, empty_value='Анон', widget=forms.TextInput(attrs={'placeholder': 'Анон'}))
     thread_id = forms.IntegerField(required=False)
@@ -25,9 +25,9 @@ class PostForm(forms.ModelForm):  # fields defined declaratively do not draw the
     def clean(self):
         # "By the time the form’s clean() method is called, all the individual field clean methods will have been run"
         cleaned_data = super().clean()
-        if not cleaned_data.get('file') and not cleaned_data.get('text'):  # with get no error raised if no such field
-            raise forms.ValidationError('Заполните форму')
-        return self.cleaned_data
+        if not self.errors:
+            if not cleaned_data.get('file') and not cleaned_data.get('text'):  # with get no error raised if no such field
+                raise forms.ValidationError('Заполните форму')
 
     def clean_file(self):
         if self.cleaned_data['file']:
@@ -47,7 +47,7 @@ class PostForm(forms.ModelForm):  # fields defined declaratively do not draw the
                     file.seek(0)
                     process = subprocess.run(args, input=file.read(), stdout=subprocess.PIPE)
                     if process.returncode != 0:
-                        raise forms.ValidationError('Ошибка загрузки')
+                        raise forms.ValidationError('Ошибка загрузки файла')
                     self.instance.video = self.files['file']
                     self.instance.video_thumb = ContentFile(content=process.stdout, name=Path(file.name).stem + '.jpg')
                 else:

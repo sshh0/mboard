@@ -15,12 +15,14 @@ def get_proper_elided_page_range(paginator, pagenum, on_each_side, on_ends):
 
 
 @register.simple_tag()
-def customize_post_string(post_string, thread_id, posts_ids):
+def customize_post_string(post_string, thread_id, posts_ids, post_id=None):
     post_string = escape(post_string)
     post_string = insert_links(post_string, thread_id, posts_ids)
     post_string = color_quoted_text(post_string)
     parser = get_parser()
     post_string = parser.render(post_string)
+    if thread_id == 100381 or 100265:
+        post_string = roll_game(post_string, post_id)
     return mark_safe(post_string.replace("\n", "<br>"))
 
 
@@ -54,3 +56,14 @@ def insert_links(post_string, thread_id, posts_ids):
                     html = html.format(quote_num, post.get_absolute_url(), quote_num)
                 post_string = post_string.replace(quote, html)
     return post_string
+
+
+def roll_game(s, post_id):
+    roll_found = re.findall('\[roll\]', s)
+    if roll_found:
+        msec = Post.objects.get(pk=post_id).date.microsecond
+        salt = 309164
+        roll = str(post_id * (salt - msec) + post_id)[-5:]
+        colored = f"<span class='roll'>{roll}</span>"
+        s = s.replace(roll_found[0], colored, 1)
+    return s

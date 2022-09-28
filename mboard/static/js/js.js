@@ -4,10 +4,6 @@ const quickPostForm = document.getElementById('quickPostForm');
 const postsLinks = document.querySelectorAll('.post .postHeader .postLink, .opPost > .opPostHeader .postLink');
 const quickPostFormTextArea = document.querySelector('#quickPostForm > textarea');
 
-if (document.querySelector('.container').classList.contains('threadPage')) {
-    for (let form of document.getElementsByTagName('form')) form.onsubmit = submitForm;
-}
-
 if (!document.querySelector('.container').matches(".captcha-error")) {
     if (document.querySelectorAll('.page-link').length === 1) document.querySelector('.page-link').hidden = true
     showQuickPostForm();
@@ -26,9 +22,13 @@ if (!document.querySelector('.container').matches(".captcha-error")) {
         elmnt.addEventListener('click', onClick);
     }));
     insertEmbedVideoButton();
+    if (document.querySelector('.container').classList.contains('threadPage')) {
+        for (let form of document.getElementsByTagName('form')) form.onsubmit = submitForm;
+    }
+    document.getElementById('quickPostForm').onsubmit = submitForm;
 }
 
-captcha();
+captchaRefresh();
 document.querySelectorAll('.clear-file-btn').forEach((btn) => btn.addEventListener('click', function (ev) {
     ev.target.previousElementSibling.value = '';
     btn.style.visibility = 'hidden';
@@ -66,12 +66,17 @@ function submitForm(ev) {
             })
             .then(r => {
                 if (r.status === 200) {
+                    if (document.getElementsByClassName('threadList').length > 0) {
+                        location.href = location.pathname.substring(0, 3) + 'thread/' + formElmnt['thread_id'].value + '/#bottom'
+                    }
+                    else {
                     fetchNewPosts();
                     formElmnt.reset();
                     if (formElmnt.id === 'quickPostForm') formElmnt.hidden = true;
                     formElmnt.querySelector('.errorlist').hidden = true;
                     formElmnt.querySelector('.captcha').click();
                     formElmnt.querySelector('.clear-file-btn').style.visibility = 'hidden';
+                    }
                 } else throw new Error('Ошибка постинга');
             })
             .catch((er) => {
@@ -93,6 +98,7 @@ function expandVideo(click) {
     expandedVideo.className = 'video-expanded'
     expandedVideo.src = this.parentElement.href;
     expandedVideo.setAttribute("controls", "controls");
+    expandedVideo.setAttribute("loop", "loop");
     expandedVideo.setAttribute("autoplay", "autoplay");
     this.parentNode.appendChild(expandedVideo);
     spanBtn.addEventListener('click', function () {
@@ -213,7 +219,7 @@ function embedVideo(span, url) {
     embeddiv.appendChild(iframe);
 }
 
-function captcha() {
+function captchaRefresh() {
     const url = `${window.location.origin}/captcha/refresh/`;
     document.querySelectorAll('img.captcha').forEach((captcha) => captcha.addEventListener('click', function (el) {
             const form = el.target.closest('form');

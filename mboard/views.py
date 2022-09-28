@@ -13,7 +13,7 @@ from .forms import PostForm, ThreadPostForm
 def list_threads(request, board, pagenum=1):
     board = get_object_or_404(Board, board_name=board)
     if request.method == 'POST':
-        if 'thread_id' in request.POST:  # reply to the thread from outside the thread (JS)
+        if request.POST['thread_id']:  # reply to the thread from outside the thread (JS)
             return get_thread(request, request.POST.get('thread_id'), board)
         form = ThreadPostForm(data=request.POST, files=request.FILES)
         if form.is_valid():
@@ -23,7 +23,7 @@ def list_threads(request, board, pagenum=1):
             return redirect(reverse('mboard:get_thread', kwargs={'thread_id': new_thread.id, 'board': board}))
     else:
         form = ThreadPostForm()
-    threads = board.post_set.all().filter(thread__isnull=True).order_by('-bump')[:20]
+    threads = board.post_set.all().filter(thread__isnull=True).order_by('-bump')
     threads_dict = {}
     posts_ids = {}
     paginator = Paginator(threads, 10)

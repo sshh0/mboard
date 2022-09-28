@@ -39,7 +39,9 @@ body {
 
 .postQuote {
     display: table;
+    padding: 7px;
     background: url('muon_posts.jpg') #292825;
+    color: #C6985C;
 
 }
 
@@ -264,6 +266,11 @@ hr {
 
 .spoiler:hover {
     color: white;
+}
+
+.roll {
+    background-color: green;
+    color: black;
 }
 
 .postLink {
