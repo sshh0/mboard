@@ -8,9 +8,9 @@
       <span class="page-link">{{ paginator.ELLIPSIS }}</span>
     {% else %}
       {% if page == 1 %}
-        <a class="page-link" href="{% url 'mboard:list_threads' board page %}">[{{ page }}]</a>
+        <a class="page-link" href="{% url 'mboard:threads_paginator' board page %}">[{{ page }}]</a>
       {% else %}
-        <a class="page-link" href="{% url 'mboard:list_threads' board page %}">[{{ page }}]</a>
+        <a class="page-link" href="{% url 'mboard:threads_paginator' board page %}">[{{ page }}]</a>
       {% endif %}
     {% endif %}
   {% endif %}

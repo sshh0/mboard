@@ -1,0 +1,11 @@
+{% include '_base.html' %}
+{% block content %}
+  <ul style="text-align: center">
+    <li>Постов за сутки: {{ plast24h }}</li>
+    <li>Всего тредов: {{ tcount }}</li>
+    <li>Всего постов: {{ pcount }}</li>
+    <li>Всего досок: {{ bcount }}</li>
+    <li>Последний пост: {{ lastp_date|date:'d/m/Y, H:i' }}</li>
+    <li>Первый пост: {{ firstp_date|date:'d/m/Y, H:i' }}</li>
+  </ul>
+{% endblock %}

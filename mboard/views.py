@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from email.utils import parsedate_to_datetime
 from random import randint
 from captcha.models import CaptchaStore
@@ -72,14 +73,13 @@ def ajax_posting(request):
 
 
 def ajax_tooltips_onhover(request, thread_id, **kwargs):
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        if 'post_id' in kwargs:
-            post = Post.objects.get(pk=kwargs['post_id'])
-            thread = Post.objects.get(pk=thread_id)
-            posts_ids = {thread: thread.posts_ids()}
-            jsn = render_to_string(request=request, template_name='post.html',
-                                   context={'post': post, 'thread': thread, 'posts_ids': {thread.pk: thread.posts_ids()}})
-            return JsonResponse(jsn, safe=False)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and 'post_id' in kwargs:
+        post = Post.objects.get(pk=kwargs['post_id'])
+        thread = Post.objects.get(pk=thread_id)
+        post_ids = {thread.pk: thread.posts_ids()}
+        jsn = render_to_string('post.html',
+                               {'post': post, 'thread': thread, 'posts_ids': post_ids}, request)
+        return JsonResponse(jsn, safe=False)
 
 
 @last_modified(lambda request, thread_id, **kwargs: Post.objects.get(pk=thread_id).bump)
@@ -114,3 +114,23 @@ def captcha_ajax_validation(request):
     else:
         json_data = {'status': 0}
     return JsonResponse(json_data)
+
+
+def info_page(request):
+    plast24h = Post.objects.all().filter(date__gte=datetime.now() - timedelta(hours=24)).count()
+    context = {'firstp_date': Post.objects.first().date,
+               'lastp_date': Post.objects.last().date,
+               'tcount': Post.objects.filter(thread=None).count(),
+               'pcount': Post.objects.count(),
+               'bcount': Board.objects.count(),
+               'plast24h': plast24h,
+               'board': 'Статистика'}
+    # total = 0
+    # for p in Post.objects.filter(Q(video__gt='') | Q(image__gt='')):
+    #     if p.video:
+    #         total += p.video.size
+    #     if p.image:
+    #         total += p.image.size
+    # context['totalsize'] = int(total / 1000)
+    # Post.objects.exclude(poster__exact="Анон").values_list('poster')
+    return HttpResponse(render_to_string('info_page.html', context, request))

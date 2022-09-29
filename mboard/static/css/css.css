@@ -14,6 +14,8 @@
 
 .header {
     margin-top: 20px;
+    margin-left: 5%;
+    margin-right: 5%;
 }
 
 .threadPage {
@@ -281,7 +283,6 @@ hr {
     float: right;
     margin-right: 3%;
     margin-bottom: 1%;
-    color: cornflowerblue;
     cursor: pointer;
     margin-left: 2%;
 }
@@ -292,7 +293,8 @@ hr {
 }
 
 .video-link {
-    display: flex;
+    font-size: 11px;
+    display: inline-block;
 }
 
 .video-thumb {

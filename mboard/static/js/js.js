@@ -4,7 +4,7 @@ const quickPostForm = document.getElementById('quickPostForm');
 const postsLinks = document.querySelectorAll('.post .postHeader .postLink, .opPost > .opPostHeader .postLink');
 const quickPostFormTextArea = document.querySelector('#quickPostForm > textarea');
 
-if (!document.querySelector('.container').matches(".captcha-error")) {
+if (document.querySelector('.threadList,.threadPage')) { // at least one class ("OR")
     if (document.querySelectorAll('.page-link').length === 1) document.querySelector('.page-link').hidden = true
     showQuickPostForm();
     dragPostForm(document.getElementById("quickPostHeader"));
@@ -111,7 +111,7 @@ function expandVideo(click) {
     let spanBtn = document.createElement('span');
     spanBtn.innerText = '[закрыть]';
     spanBtn.className = 'video-close-btn';
-    this.closest('.video-div').previousElementSibling.appendChild(spanBtn);
+    this.closest('.video-div').previousElementSibling.after(spanBtn);
     this.hidden = true;
     let expandedVideo = document.createElement('video');
     this.closest('.video-div').className = 'video-div-expanded';
