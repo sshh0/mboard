@@ -1,4 +1,4 @@
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from mboard.models import Post
 
 
@@ -12,4 +12,11 @@ def delete_media(instance, **kwargs):  # Signal receivers must accept keyword ar
         instance.video_thumb.delete(save=False)
 
 
+def bump_thread(instance, **kwards):
+    if instance.thread is not None:
+        instance.thread.bump = instance.bump
+        instance.thread.save()
+
+
 post_delete.connect(delete_media, Post)
+post_save.connect(bump_thread, Post)

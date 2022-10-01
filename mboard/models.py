@@ -1,5 +1,4 @@
 from django.db import models
-from django.core.validators import MinLengthValidator, FileExtensionValidator
 
 
 class Post(models.Model):
@@ -9,8 +8,7 @@ class Post(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     image = models.ImageField(upload_to='post/images/', blank=True, verbose_name='Image')
     thumbnail = models.ImageField(upload_to='post/thumbnails/', blank=True)
-    video = models.FileField(upload_to='post/videos/', blank=True,
-                             validators=[FileExtensionValidator(allowed_extensions=['mp4', 'webm'])])
+    video = models.FileField(upload_to='post/videos/', blank=True)
     video_thumb = models.ImageField(upload_to='post/videos/thumbs', blank=True)
     bump = models.DateTimeField(auto_now=True)
     board = models.ForeignKey('Board', on_delete=models.CASCADE, null=False, blank=False)
@@ -31,7 +29,7 @@ class Post(models.Model):
 
 
 class Board(models.Model):
-    board_name = models.CharField(max_length=20, blank=False, null=False, validators=[MinLengthValidator(1)])
+    board_name = models.CharField(max_length=20, blank=False, null=False)
 
     def __str__(self):
         return self.board_name

@@ -1,90 +1,99 @@
 "use strict";
 
-const quickPostForm = document.getElementById('quickPostForm');
-const postsLinks = document.querySelectorAll('.post .postHeader .postLink, .opPost > .opPostHeader .postLink');
-const quickPostFormTextArea = document.querySelector('#quickPostForm > textarea');
+const $ = document.querySelector.bind(document)
+const $$ = document.querySelectorAll.bind(document)
 
-if (document.querySelector('.threadList,.threadPage')) { // at least one class ("OR")
-    if (document.querySelectorAll('.page-link').length === 1) document.querySelector('.page-link').hidden = true
+const quickPostForm = document.getElementById('quickPostForm');
+const postsLinks = $$('.post .postHeader .postLink, .opPost > .opPostHeader .postLink');
+const quickPostFormTextArea = $('#quickPostForm > textarea');
+
+for (let f of document.getElementsByTagName('form')) f.addEventListener('submit', submitForm);
+$$('.clear-file-btn').forEach((btn) => btn.addEventListener('click', function (ev) {
+    ev.target.previousElementSibling.value = '';
+    btn.style.visibility = 'hidden';
+}));
+$$('#id_file').forEach(function (file) {
+    if (file.files.length > 0) file.nextElementSibling.style.visibility = 'visible';
+    file.addEventListener('change', (ev) => ev.target.nextElementSibling.style.visibility = 'visible')
+});
+if ($('.threadList,.threadPage')) { // at least one class ("OR")
     showQuickPostForm();
     dragPostForm(document.getElementById("quickPostHeader"));
     ApplyJsOnFetchedElements();
-    document.querySelectorAll('.image').forEach((image) => image.addEventListener('click', expandImage));
-    document.querySelectorAll('.video-thumb').forEach((video) => video.addEventListener('click', expandVideo));
     addRepliesToPost();
     altEnterFormSubmit();
-    document.querySelector('.js-fetch-new-posts')?.addEventListener('click', fetchNewPosts);
-    document.querySelectorAll('.quote, .reply').forEach((elmnt) => elmnt.addEventListener('mouseover', function (event) {
+    insertEmbedVideoButton();
+    $$('.image').forEach((image) => image.addEventListener('click', expandImage));
+    $$('.video-thumb').forEach((video) => video.addEventListener('click', expandVideo));
+    $('.js-fetch-new-posts')?.addEventListener('click', fetchNewPosts);
+    $$('.quote, .reply').forEach((elmnt) => elmnt.addEventListener('mouseover', function (event) {
         if (!event.target.hasOwnProperty('_tippy')) {
             const loadAndShow = true;
             addTooltip(event.target, loadAndShow);
         }
         elmnt.addEventListener('click', onClick);
     }));
-    insertEmbedVideoButton();
-    if (document.querySelector('.container').classList.contains('threadPage')) {
-        for (let form of document.getElementsByTagName('form')) form.onsubmit = submitForm;
+    if ($('.container').classList.contains('threadList')) truncateLongPosts();
+    if ($$('.page-link').length === 1) $('.page-link').hidden = true
+}
+captchaRefresh();
+
+async function submitForm(ev) {
+    ev.preventDefault();
+    let form = new FormData(this);
+    if (form.get('file').name === "" && form.get('text') === "") {
+        this.querySelector('.errorlist').innerText = 'Заполните форму';
+        this.querySelector('.errorlist').hidden = false;
+    } else {
+        let validated = await validateCaptcha(form);
+        if (validated.status === 1) {
+            await makePost(form, this)
+        } else {
+            this.querySelector('.errorlist').innerText = "Ошибка в капче\n";
+            this.querySelector('.errorlist').hidden = false;
+        }
     }
-    if (document.querySelector('.container').classList.contains('threadList')) {
-        truncateLongPosts()
-    }
-//document.getElementById('quickPostForm').onsubmit = submitForm;
 }
 
-captchaRefresh();
-document.querySelectorAll('.clear-file-btn').forEach((btn) => btn.addEventListener('click', function (ev) {
-    ev.target.previousElementSibling.value = '';
-    btn.style.visibility = 'hidden';
-}))
-document.querySelectorAll('#id_file').forEach((file) => file.addEventListener('change', function (ev) {
-    ev.target.nextElementSibling.style.visibility = 'visible';
-}))
+async function validateCaptcha(form) {
+    let hash = form.get('captcha_0');
+    let captcha = form.get('captcha_1');
+    const url = `${window.location.origin}/captcha_val/?` + new URLSearchParams({
+        'hash': hash,
+        'captcha': captcha,
+    });
+    const r = await fetch(url);
+    return r.json()
+}
 
-function submitForm(ev) {
-    ev.preventDefault();
-    const formElmnt = ev.target;
-    let form = new FormData(formElmnt);
-    if (form.get('file').name === "" && form.get('text') === "") {
-        formElmnt.querySelector('.errorlist').innerText = 'Заполните форму';
-        formElmnt.querySelector('.errorlist').hidden = false;
+async function makePost(form, formElmnt) {
+    let r = await fetch(window.location.origin + '/posting/', {
+        body: form,
+        method: "POST",
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+    })
+    if (r.status === 200) {
+        let data = await r.json();
+        if ('postok' in data) {
+            if ($('.threadPage')) {
+                fetchNewPosts();
+                formElmnt.reset();
+                if (formElmnt.id === 'quickPostForm') formElmnt.hidden = true;
+                formElmnt.querySelector('.errorlist').hidden = true;
+                formElmnt.querySelector('.captcha').click();
+                formElmnt.querySelector('.clear-file-btn').style.visibility = 'hidden';
+            }
+            if ($('.threadList')) {
+                location.href = location.pathname + 'thread/' + data['thread_id'] + '/#bottom'
+            }
+        }
+        if (data.errors) {
+            Object.values(data.errors).forEach((v) => formElmnt.querySelector('.errorlist').innerText += `${v}\n`);
+            formElmnt.querySelector('.errorlist').hidden = false;
+        }
     } else {
-        let hash = formElmnt.querySelector('#id_captcha_0').value;
-        let captcha = formElmnt.querySelector('#id_captcha_1').value;
-        const url = `${window.location.origin}/captcha_val/?` + new URLSearchParams({
-            'hash': hash,
-            'captcha': captcha,
-        });
-        fetch(url)
-            .then(resp => resp.json())
-            .then(json => {
-                if (json.status === 1)
-                    return fetch(window.location.origin + '/posting/', {
-                        body: form,
-                        method: "POST",
-                        headers: {'X-Requested-With': 'XMLHttpRequest',},
-                    })
-                else {
-                    throw new Error('Ошибка в капче');
-                }
-            })
-            .then(r => {
-                if (r.status === 200) {
-                    if (document.getElementsByClassName('threadList').length > 0) {
-                        location.href = location.pathname.substring(0, 3) + 'thread/' + formElmnt['thread_id'].value + '/#bottom'
-                    } else {
-                        fetchNewPosts();
-                        formElmnt.reset();
-                        if (formElmnt.id === 'quickPostForm') formElmnt.hidden = true;
-                        formElmnt.querySelector('.errorlist').hidden = true;
-                        formElmnt.querySelector('.captcha').click();
-                        formElmnt.querySelector('.clear-file-btn').style.visibility = 'hidden';
-                    }
-                } else throw new Error('Ошибка постинга');
-            })
-            .catch((er) => {
-                formElmnt.querySelector('.errorlist').innerText = er;
-                formElmnt.querySelector('.errorlist').hidden = false;
-            })
+        formElmnt.querySelector('.errorlist').innerText = "Ошибка постинга\n";
+        formElmnt.querySelector('.errorlist').hidden = false;
     }
 }
 
@@ -153,7 +162,7 @@ function twoTapsOnTouchDevices() {
 
 function insertEmbedVideoButton() {
     const regex = /(?:www\.)?(youtu|yewtu)\.?be(?:\.com)?\/?\S*(?:watch|embed)?(?:\S*v=|v\/|\/)([\w\-_]+)&?/;
-    document.querySelectorAll('.text').forEach((el) => {
+    $$('.text').forEach((el) => {
         el.childNodes.forEach((node) => {
             if (node.nodeType === Node.TEXT_NODE) {
                 let url = regex.exec(node.nodeValue);
@@ -241,10 +250,10 @@ function embedVideo(span, url) {
 
 function captchaRefresh() {
     const url = `${window.location.origin}/captcha/refresh/`;
-    document.querySelectorAll('img.captcha').forEach((captcha) => captcha.addEventListener('click', function (el) {
+    $$('img.captcha').forEach((captcha) => captcha.addEventListener('click', function (el) {
             const form = el.target.closest('form');
-            form.querySelector('#id_captcha_1').value = '';
-            form.querySelector('#id_captcha_1').focus();
+            form['captcha_1'].value = '';
+            form['captcha_1'].focus();
             fetch(url, {
                 method: "GET",
                 headers: {
@@ -253,8 +262,9 @@ function captchaRefresh() {
             })
                 .then((r) => r.json())
                 .then(json => {
-                    form.querySelector("input[name='captcha_0']").value = json.key;
+                    form['captcha_0'].value = json.key;
                     form.querySelector(".captcha").src = json['image_url'];
+                    form.querySelector('.errorlist').innerText = '';
                 })
                 .catch(console.error);
         }
@@ -264,7 +274,7 @@ function captchaRefresh() {
 function addTooltip(quoteElmnt, loadAndShow = false) {
     let tooltip;
     try {
-        tooltip = document.querySelector(`[data-id='${quoteElmnt.dataset.quote}']`).outerHTML;
+        tooltip = $(`[data-id='${quoteElmnt.dataset.quote}']`).outerHTML;
         fillTooltip(quoteElmnt, tooltip, loadAndShow);
     } catch (e) { //tooltip content in another thread, get its content via fetch
         fetchTippy(quoteElmnt).then(tooltip => fillTooltip(quoteElmnt, tooltip, loadAndShow));
@@ -305,7 +315,7 @@ function fetchTippy(quoteElmnt) {
 function addRepliesToPost() {
     let previousQuote;
     let previousPostId;
-    document.querySelectorAll('.threadPage .quote').forEach((quote) => {
+    $$('.threadPage .quote').forEach((quote) => {
         if (quote.dataset.quote !== previousQuote || quote.closest('article').dataset.id !== previousPostId) {
             previousQuote = quote.dataset.quote;
             previousPostId = quote.closest('article').dataset.id;
@@ -319,14 +329,14 @@ function constructReplyElmnt(quote) {
     const text = '>>' + quote.closest('article').dataset.id + ' ';
     const template = document.createElement('template');
     template.innerHTML = `<span><a class='reply' data-quote=${postId} href='#id${postId}'>${text}</a></span>`;
-    const quotedPost = document.querySelector(`[data-id="${quote.dataset.quote}"]`);
+    const quotedPost = $(`[data-id="${quote.dataset.quote}"]`);
     if (quotedPost !== null) {
         quotedPost.querySelector('.replies').appendChild(template.content.firstChild);
     }
 }
 
 function fetchNewPosts() {
-    const lastLoadedPost = document.querySelectorAll('article')[document.querySelectorAll('article').length - 1];
+    const lastLoadedPost = $$('article')[$$('article').length - 1];
     let pathname = window.location.pathname;
     pathname = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
     const urlparams = pathname + '.json';
@@ -375,14 +385,14 @@ function ApplyJsOnFetchedElements() {
                 node.querySelectorAll('.quote')?.forEach((quote) => {
                     constructReplyElmnt(quote);
                     addTooltip(quote);
-                    addTooltip(document.querySelector(`.reply[data-quote="${quote.closest('.post').dataset.id}"]`));
+                    addTooltip($(`.reply[data-quote="${quote.closest('.post').dataset.id}"]`));
                 });
             }
         });
     }
 
     const observer = new MutationObserver(callback);
-    document.querySelectorAll('section').forEach((elmnt) => {
+    $$('section').forEach((elmnt) => {
         observer.observe(elmnt, {childList: true});
     });
 }
@@ -460,11 +470,11 @@ function dragPostForm(elmnt) {
 }
 
 function focusTextArea() {
-    document.querySelector('#postForm > textarea').focus();
+    $('#postForm > textarea').focus();
 }
 
 function altEnterFormSubmit() {
-    document.querySelectorAll('textarea').forEach((area) => area.addEventListener('keydown', (ev) => {
+    $$('textarea').forEach((area) => area.addEventListener('keydown', (ev) => {
         if (ev.altKey && ev.code === 'Enter') {  // form.submit() doesn't trigger 'submit' event (????)
             ev.target.parentElement.querySelector('button[type="submit"]').click();
         }

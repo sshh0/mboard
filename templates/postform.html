@@ -9,10 +9,13 @@
     {{ form.text }}
     {{ form.thread_id.as_hidden }}
     {{ form.captcha }}
-    <div style="clear: both">{{ form.file }}
+    {% csrf_token %}
+    <input type="hidden" name="board" value="{{ board }}">
+    <input type="hidden" value="{{ board }}">
+    <div style="clear: both">
+      {{ form.file }}
       <button class="clear-file-btn" type="button">❌</button>
     </div>
-    {% csrf_token %}
-    <div hidden class="errorlist">Ошибка в капче</div>
+    <div hidden class="errorlist"></div>
   </form>
 </details>

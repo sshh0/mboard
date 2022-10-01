@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 from email.utils import parsedate_to_datetime
 from random import randint
 from captcha.models import CaptchaStore
@@ -7,6 +6,8 @@ from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 from django.template.loader import render_to_string
 from django.core.paginator import Paginator
 from django.views.decorators.http import last_modified
+from django.utils import timezone
+from datetime import timedelta
 from mboard.models import Post, Board
 from .forms import PostForm, ThreadPostForm
 
@@ -14,8 +15,6 @@ from .forms import PostForm, ThreadPostForm
 def list_threads(request, board, pagenum=1):
     board = get_object_or_404(Board, board_name=board)
     if request.method == 'POST':
-        if request.POST['thread_id']:  # reply to the thread from outside the thread (JS)
-            return get_thread(request, request.POST.get('thread_id'), board)
         form = ThreadPostForm(data=request.POST, files=request.FILES)
         if form.is_valid():
             new_thread = form.save(commit=False)
@@ -52,23 +51,28 @@ def get_thread(request, thread_id, board):
                 reverse('mboard:get_thread', kwargs={'thread_id': thread_id, 'board': board}) + f'#id{new_post.id}')
         return render(request, 'post_error.html', {'form': form, 'board': board})
     form = PostForm(initial={'thread_id': thread_id})
-    board = Board.objects.get(board_name=board)
-    thread = board.post_set.get(pk=thread_id)
+    # board = Board.objects.get(board_name=board)
+    # thread = Board.objects.get(board_name=board).post_set.get(pk=thread_id)
+    thread = Post.objects.get(pk=thread_id)
     context = {'thread': thread, 'posts_ids': {thread.pk: thread.posts_ids()}, 'form': form, 'board': board}
     return render(request, 'thread.html', context)
 
 
 def ajax_posting(request):
     if request.method == 'POST':
-        form = PostForm(data=request.POST, files=request.FILES)
+        if request.POST['thread_id']:
+            form = PostForm(data=request.POST, files=request.FILES)
+        else:
+            form = ThreadPostForm(data=request.POST, files=request.FILES)
         if form.is_valid():
             new_post = form.save(commit=False)
-            new_post.thread_id = form.data['thread_id']
-            new_post.thread.bump = new_post.bump
-            new_post.thread.save()
-            new_post.board = new_post.thread.board
-            new_post.save()
-            return HttpResponse(status=200)
+            if form.data['thread_id']:
+                new_post.thread_id = form.data['thread_id']
+            new_post.board = Board.objects.get(board_name=request.POST['board'])
+            new_post.save()  # '.id' doesn't exist before saving
+            thread_id = new_post.thread_id if new_post.thread_id else new_post.id
+            return JsonResponse({"postok": 'ok', 'thread_id': thread_id})
+        return JsonResponse({'errors': form.errors})
     return HttpResponseBadRequest()
 
 
@@ -117,7 +121,7 @@ def captcha_ajax_validation(request):
 
 
 def info_page(request):
-    plast24h = Post.objects.all().filter(date__gte=datetime.now() - timedelta(hours=24)).count()
+    plast24h = Post.objects.all().filter(date__gte=timezone.now() - timedelta(hours=24)).count()
     context = {'firstp_date': Post.objects.first().date,
                'lastp_date': Post.objects.last().date,
                'tcount': Post.objects.filter(thread=None).count(),
@@ -125,12 +129,4 @@ def info_page(request):
                'bcount': Board.objects.count(),
                'plast24h': plast24h,
                'board': 'Статистика'}
-    # total = 0
-    # for p in Post.objects.filter(Q(video__gt='') | Q(image__gt='')):
-    #     if p.video:
-    #         total += p.video.size
-    #     if p.image:
-    #         total += p.image.size
-    # context['totalsize'] = int(total / 1000)
-    # Post.objects.exclude(poster__exact="Анон").values_list('poster')
     return HttpResponse(render_to_string('info_page.html', context, request))

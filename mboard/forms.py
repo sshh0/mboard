@@ -26,7 +26,7 @@ class PostForm(forms.ModelForm):  # fields defined declaratively do not draw the
         # "By the time the form’s clean() method is called, all the individual field clean methods will have been run"
         cleaned_data = super().clean()
         if not self.errors:
-            if not cleaned_data.get('file') and not cleaned_data.get('text'):  # with get no error raised if no such field
+            if not cleaned_data.get('file') and not cleaned_data.get('text'):  # with get no error raised if no field
                 raise forms.ValidationError('Заполните форму')
 
     def clean_file(self):
