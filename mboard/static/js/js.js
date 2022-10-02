@@ -1,21 +1,25 @@
 "use strict";
 
-const $ = document.querySelector.bind(document)
-const $$ = document.querySelectorAll.bind(document)
-
+const $ = document.querySelector.bind(document);
+const $$ = document.querySelectorAll.bind(document);
 const quickPostForm = document.getElementById('quickPostForm');
 const postsLinks = $$('.post .postHeader .postLink, .opPost > .opPostHeader .postLink');
 const quickPostFormTextArea = $('#quickPostForm > textarea');
+const onClick = twoTapsOnTouchDevices();
 
 for (let f of document.getElementsByTagName('form')) f.addEventListener('submit', submitForm);
+
 $$('.clear-file-btn').forEach((btn) => btn.addEventListener('click', function (ev) {
     ev.target.previousElementSibling.value = '';
     btn.style.visibility = 'hidden';
 }));
+
 $$('#id_file').forEach(function (file) {
     if (file.files.length > 0) file.nextElementSibling.style.visibility = 'visible';
-    file.addEventListener('change', (ev) => ev.target.nextElementSibling.style.visibility = 'visible')
+    file.addEventListener('change', (ev) => ev.target.nextElementSibling.style.visibility = 'visible');
 });
+captchaRefresh();
+
 if ($('.threadList,.threadPage')) { // at least one class ("OR")
     showQuickPostForm();
     dragPostForm(document.getElementById("quickPostHeader"));
@@ -26,31 +30,32 @@ if ($('.threadList,.threadPage')) { // at least one class ("OR")
     $$('.image').forEach((image) => image.addEventListener('click', expandImage));
     $$('.video-thumb').forEach((video) => video.addEventListener('click', expandVideo));
     $('.js-fetch-new-posts')?.addEventListener('click', fetchNewPosts);
-    $$('.quote, .reply').forEach((elmnt) => elmnt.addEventListener('mouseover', function (event) {
-        if (!event.target.hasOwnProperty('_tippy')) {
-            const loadAndShow = true;
-            addTooltip(event.target, loadAndShow);
+    $$('.quote, .reply').forEach((elmnt) => elmnt.addEventListener('click', onClick));
+    document.addEventListener('mouseover', function (ev) {
+        if (ev.target.classList.contains('quote') || ev.target.classList.contains('reply')) {
+            if (!ev.target.hasOwnProperty('_tippy')) {
+                const loadAndShow = true;
+                addTooltip(ev.target, loadAndShow);
+            }
         }
-        elmnt.addEventListener('click', onClick);
-    }));
+    });
     if ($('.container').classList.contains('threadList')) truncateLongPosts();
-    if ($$('.page-link').length === 1) $('.page-link').hidden = true
+    if ($$('.page-link').length === 1) $('.page-link').hidden = true;
 }
-captchaRefresh();
 
 async function submitForm(ev) {
     ev.preventDefault();
-    let form = new FormData(this);
+    let form = new FormData(ev.target);
     if (form.get('file').name === "" && form.get('text') === "") {
-        this.querySelector('.errorlist').innerText = 'Заполните форму';
-        this.querySelector('.errorlist').hidden = false;
+        ev.target.querySelector('.errorlist').innerText = 'Заполните форму';
+        ev.target.querySelector('.errorlist').hidden = false;
     } else {
         let validated = await validateCaptcha(form);
         if (validated.status === 1) {
-            await makePost(form, this)
+            await makePost(form, ev.target);
         } else {
-            this.querySelector('.errorlist').innerText = "Ошибка в капче\n";
-            this.querySelector('.errorlist').hidden = false;
+            ev.target.querySelector('.errorlist').innerText = "Ошибка в капче\n";
+            ev.target.querySelector('.errorlist').hidden = false;
         }
     }
 }
@@ -63,7 +68,7 @@ async function validateCaptcha(form) {
         'captcha': captcha,
     });
     const r = await fetch(url);
-    return r.json()
+    return r.json();
 }
 
 async function makePost(form, formElmnt) {
@@ -71,7 +76,7 @@ async function makePost(form, formElmnt) {
         body: form,
         method: "POST",
         headers: {'X-Requested-With': 'XMLHttpRequest'},
-    })
+    });
     if (r.status === 200) {
         let data = await r.json();
         if ('postok' in data) {
@@ -84,7 +89,7 @@ async function makePost(form, formElmnt) {
                 formElmnt.querySelector('.clear-file-btn').style.visibility = 'hidden';
             }
             if ($('.threadList')) {
-                location.href = location.pathname + 'thread/' + data['thread_id'] + '/#bottom'
+                location.href = location.pathname + 'thread/' + data['thread_id'] + '/#bottom';
             }
         }
         if (data.errors) {
@@ -103,14 +108,13 @@ function truncateLongPosts() {
             const span = document.createElement('span');
             span.className = 'func-btn';
             span.innerText = '… Показать полностью';
-            //span.innerHTML = '<span class="func-btn">… Показать полностью</span>';
             const textAfter = t.innerHTML.substring(1100);
-            t.innerHTML = t.innerHTML.substring(0, 1100)
-            t.append(span)
+            t.innerHTML = t.innerHTML.substring(0, 1100);
+            t.append(span);
             span.addEventListener('click', () => {
                 span.remove();
                 t.innerHTML += textAfter;
-            })
+            });
         }
     }
 }
@@ -120,16 +124,16 @@ function expandVideo(click) {
     let spanBtn = document.createElement('span');
     spanBtn.innerText = '[закрыть]';
     spanBtn.className = 'video-close-btn';
-    this.closest('.video-div').previousElementSibling.after(spanBtn);
-    this.hidden = true;
+    click.target.closest('.video-div').previousElementSibling.after(spanBtn);
+    click.target.hidden = true;
     let expandedVideo = document.createElement('video');
-    this.closest('.video-div').className = 'video-div-expanded';
-    expandedVideo.className = 'video-expanded'
-    expandedVideo.src = this.parentElement.href;
+    click.target.closest('.video-div').className = 'video-div-expanded';
+    expandedVideo.className = 'video-expanded';
+    expandedVideo.src = click.target.parentElement.href;
     expandedVideo.setAttribute("controls", "controls");
     expandedVideo.setAttribute("loop", "loop");
     expandedVideo.setAttribute("autoplay", "autoplay");
-    this.parentNode.appendChild(expandedVideo);
+    click.target.parentNode.appendChild(expandedVideo);
     spanBtn.addEventListener('click', function () {
         expandedVideo.previousElementSibling.hidden = false;
         expandedVideo.closest('.video-div-expanded').className = 'video-div';
@@ -138,15 +142,13 @@ function expandVideo(click) {
     });
 }
 
-const onClick = twoTapsOnTouchDevices();
-
 function twoTapsOnTouchDevices() {
     let clicks = 0;
     let target;
 
     return function (ev) {
         if (ev.target !== target) {
-            clicks--
+            clicks--;
         }
         clicks++;
         if (clicks === 2 || !window.matchMedia("(pointer: coarse)").matches) {
@@ -280,18 +282,22 @@ function addTooltip(quoteElmnt, loadAndShow = false) {
         fetchTippy(quoteElmnt).then(tooltip => fillTooltip(quoteElmnt, tooltip, loadAndShow));
     }
 
+
     function fillTooltip(quoteElmnt, tooltip, loadAndShow) {
         let template = document.createElement('template');
         template.innerHTML = tooltip.trim();
         template.content.firstChild.className = 'postQuote';
         let t = tippy(quoteElmnt, {
             // showOnCreate: true,
-            // interactive: true,
+            interactive: true,
+            interactiveDebounce: 55,
             content: template.content.firstChild,
-            placement: 'auto-end', //top right-end
+            placement: 'top-end', //top right-end
             maxWidth: 800,
+            arrow: false,
             animation: false,
-            appendTo: quoteElmnt.parentNode,
+            offset: [40, 1],
+            appendTo: quoteElmnt.closest('.container'), // appendTo: quoteElmnt.parentNode,
         });
         if (loadAndShow === true) t.show();
     }
@@ -319,7 +325,7 @@ function addRepliesToPost() {
         if (quote.dataset.quote !== previousQuote || quote.closest('article').dataset.id !== previousPostId) {
             previousQuote = quote.dataset.quote;
             previousPostId = quote.closest('article').dataset.id;
-            constructReplyElmnt(quote)
+            constructReplyElmnt(quote);
         }
     });
 }
@@ -384,8 +390,8 @@ function ApplyJsOnFetchedElements() {
                 node.querySelector('.postLink')?.addEventListener('click', setTextValue);
                 node.querySelectorAll('.quote')?.forEach((quote) => {
                     constructReplyElmnt(quote);
-                    addTooltip(quote);
-                    addTooltip($(`.reply[data-quote="${quote.closest('.post').dataset.id}"]`));
+                    // addTooltip(quote);
+                    // addTooltip($(`.reply[data-quote="${quote.closest('.post').dataset.id}"]`));
                 });
             }
         });
@@ -399,12 +405,12 @@ function ApplyJsOnFetchedElements() {
 
 function expandImage(click) {
     click.preventDefault();
-    this.hidden = true;  // this == imgClicked.target
+    click.target.hidden = true;  // click.target == imgClicked.target
     let expandedImg = document.createElement('img');
-    this.closest('.imagediv').className = 'imagediv-expanded';
-    expandedImg.src = this.parentElement.href;
+    click.target.closest('.imagediv').className = 'imagediv-expanded';
+    expandedImg.src = click.target.parentElement.href;
     expandedImg.style.width = '100%';
-    this.parentNode.appendChild(expandedImg);
+    click.target.parentNode.appendChild(expandedImg);
     expandedImg.addEventListener('click', function (e) {
         e.preventDefault();
         expandedImg.previousElementSibling.hidden = false;
@@ -422,14 +428,14 @@ function showQuickPostForm() {
     });
 }
 
-function setTextValue(e) {
-    e.preventDefault();
+function setTextValue(ev) {
+    ev.preventDefault();
     quickPostForm.hidden = false;
     if (!quickPostForm.hidden) {
-        quickPostFormTextArea.setRangeText(`>>` + this.closest('article').dataset.id + '\n');
+        quickPostFormTextArea.setRangeText(`>>` + ev.target.closest('article').dataset.id + '\n');
         quickPostFormTextArea.selectionStart = quickPostFormTextArea.selectionEnd = quickPostFormTextArea.value.length;
         try {
-            if (window.getSelection().anchorNode.parentElement.closest('article').id === this.closest('article').id) {
+            if (window.getSelection().anchorNode.parentElement.closest('article').id === ev.target.closest('article').id) {
                 const selectedText = window.getSelection().toString().trimEnd();
                 quickPostFormTextArea.value += '>';
                 quickPostFormTextArea.value += selectedText.replace(/\n/g, '\n>');
@@ -437,7 +443,7 @@ function setTextValue(e) {
             }
         } catch (e) {
         }
-        quickPostForm.elements['id_thread_id'].value = this.closest('section').dataset.threadid;
+        quickPostForm.elements['id_thread_id'].value = ev.target.closest('section').dataset.threadid;
         quickPostFormTextArea.focus();
     }
 }
