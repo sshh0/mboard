@@ -16,9 +16,14 @@ ALLOWED_HOSTS = dotenv_config['ALLOWED_HOSTS'].split()
 
 APPEND_SLASH = True
 
-CAPTCHA_FONT_SIZE = 30
-CAPTCHA_CHALLENGE_FUNCT = 'mboard.views.random_digit_challenge'
+CAPTCHA_FONT_SIZE = 21
+CAPTCHA_LETTER_ROTATION = None
+# CAPTCHA_CHALLENGE_FUNCT = 'mboard.views.random_digit_challenge'
 # CAPTCHA_TEST_MODE = True
+if Path.exists((BASE_DIR / 'captchawordsdict.txt')):
+    CAPTCHA_WORDS_DICTIONARY = BASE_DIR / 'captchawordsdict.txt'
+    CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.word_challenge'
+    CAPTCHA_FONT_PATH = 'fonts/DejaVuSans.ttf'
 
 BBCODE_DISABLE_BUILTIN_TAGS = True
 BBCODE_ALLOW_SMILIES = False

@@ -115,14 +115,56 @@ summary {
 }
 
 #postForm {
-    width: 400px;
+    width: max-content;
     margin: 2% auto auto;
+    background: #3E3C38 url('muon_inputs.jpg');
+    border: 1px solid gray;
 }
 
 #quickPostForm {
     position: fixed;
     left: 30%;
     top: 40%;
+    background: #3E3C38 url('muon_inputs.jpg');
+    border: 1px solid gray;
+}
+
+textarea {
+    background: inherit;
+    color: #FEC77D;
+    font-size: inherit;
+    font-family: inherit;
+    outline: none;
+    border: none ;
+    display: block;
+    width: calc(99%);
+    /*width: -moz-available;*/
+    /*width: -webkit-fill-available;*/
+    /*width: fill-available;*/
+}
+
+.errorlist {
+    color: red;
+    text-align: center;
+    clear: both;
+    list-style: none;
+    margin-bottom: 1%;
+}
+
+input {
+    background: inherit;
+    outline: none;
+    color: #FEC77D;
+    border: 1px solid gray ;
+    flex-grow: 1;
+}
+
+#quickPostHeader {
+    padding: 7px;
+}
+
+.postHeader a {
+    color: inherit;
 }
 
 form {
@@ -131,7 +173,6 @@ form {
 }
 
 #id_file {
-    /*display: block;*/
     clear: both;
     width: 200px;
 }
@@ -143,6 +184,7 @@ form {
 .captcha {
     float: left
 }
+
 
 @media only screen and (hover: none) and (pointer: coarse) {
     #quickPostForm {
@@ -157,49 +199,18 @@ form {
         margin-left: 0;
         margin-right: 0;
     }
-}
 
-textarea {
-    background: #3E3C38 url('muon_inputs.jpg');
-    color: #FEC77D;
-    font-size: inherit;
-    font-family: inherit;
-    outline: none;
-    border: 1px solid gray ;
-    display: block;
-}
-
-input {
-    background: #3E3C38 url('muon_inputs.jpg');
-    outline: none;
-    color: #FEC77D;
-    border: 1px solid gray ;
-    flex-grow: 1;
-}
-
-#quickPostHeader {
-    padding: 7px;
-    background: #3E3C38 url('muon_inputs.jpg')
-}
-
-.postHeader a {
-    color: inherit;
-}
-
-.errorlist {
-    color: red;
-    text-align: center;
-    clear: both;
-    list-style: none;
-    margin-bottom: 1%;
+    #quickPostForm {
+        position: fixed;
+        left: 0;
+        top: 0;
+    }
 }
 
 a {
     color: #FFD97A;
     text-decoration: none
 }
-
-
 
 #showFormButton {
     font-size: large;
@@ -320,4 +331,9 @@ hr {
 .func-btn {
     color: grey;
     cursor: pointer;
+}
+
+#num {
+    font-weight: bold;
+    color: #FFD97A;
 }

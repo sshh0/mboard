@@ -2,7 +2,9 @@
 <form hidden id="quickPostForm" action="" method="post"
       enctype="multipart/form-data">
   <img loading="lazy" id='closebutton' alt="Close" style="float: left" src="{% static 'closebutton.svg' %}">
-  <div id='quickPostHeader' style="cursor: move; text-align: center"><span>Ответить в тред</span>
+  <div id='quickPostHeader' style="cursor: move; text-align: center">
+    <span>Ответить в тред</span>
+    <span id="num"></span>
   </div>
   <div style="display: flex;">
     {{ form.poster }}
@@ -10,7 +12,7 @@
   </div>
   {{ form.text }}
   {{ form.thread_id.as_hidden }}
-  {{ form.captcha }}
+  <div>{{ form.captcha }}</div>
   {% csrf_token %}
   <input type="hidden" name="board" value="{{ board }}">
   <div style="clear: both">

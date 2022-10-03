@@ -21,8 +21,8 @@ def list_threads(request, board, pagenum=1):
             new_thread.board = board
             new_thread.save()
             return redirect(reverse('mboard:get_thread', kwargs={'thread_id': new_thread.id, 'board': board}))
-    else:
-        form = ThreadPostForm()
+        return render(request, 'post_error.html', {'form': form, 'board': board})
+    form = ThreadPostForm()
     threads = board.post_set.all().filter(thread__isnull=True).order_by('-bump')
     threads_dict = {}
     posts_ids = {}
@@ -51,8 +51,6 @@ def get_thread(request, thread_id, board):
                 reverse('mboard:get_thread', kwargs={'thread_id': thread_id, 'board': board}) + f'#id{new_post.id}')
         return render(request, 'post_error.html', {'form': form, 'board': board})
     form = PostForm(initial={'thread_id': thread_id})
-    # board = Board.objects.get(board_name=board)
-    # thread = Board.objects.get(board_name=board).post_set.get(pk=thread_id)
     thread = Post.objects.get(pk=thread_id)
     context = {'thread': thread, 'posts_ids': {thread.pk: thread.posts_ids()}, 'form': form, 'board': board}
     return render(request, 'thread.html', context)

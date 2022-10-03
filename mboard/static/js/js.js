@@ -444,6 +444,7 @@ function setTextValue(ev) {
         } catch (e) {
         }
         quickPostForm.elements['id_thread_id'].value = ev.target.closest('section').dataset.threadid;
+        $('#quickPostHeader #num').innerText = '№ ' + ev.target.closest('section').dataset.threadid;
         quickPostFormTextArea.focus();
     }
 }
