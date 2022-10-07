@@ -46,17 +46,14 @@ if ($('.threadList,.threadPage')) { // at least one class ("OR")
 async function submitForm(ev) {
     ev.preventDefault();
     let form = new FormData(ev.target);
-    if (form.get('file').name === "" && form.get('text') === "") {
-        ev.target.querySelector('.errorlist').innerText = 'Заполните форму';
-        ev.target.querySelector('.errorlist').hidden = false;
+    let validated = await validateCaptcha(form);
+    if (validated['status'] === 1) {
+        await makePost(form, ev.target);
     } else {
-        let validated = await validateCaptcha(form);
-        if (validated.status === 1) {
-            await makePost(form, ev.target);
-        } else {
-            ev.target.querySelector('.errorlist').innerText = "Ошибка в капче\n";
-            ev.target.querySelector('.errorlist').hidden = false;
-        }
+        ev.target.querySelector('.errorlist').innerText = '';
+        ev.target.querySelector('.errorlist').innerText = validated['err'];
+        // Object.values(validated['err']).forEach((v) => ev.target.querySelector('.errorlist').innerText += `${v}\n`);
+        ev.target.querySelector('.errorlist').hidden = false;
     }
 }
 
@@ -92,13 +89,10 @@ async function makePost(form, formElmnt) {
                 location.href = location.pathname + 'thread/' + data['thread_id'] + '/#bottom';
             }
         }
-        if (data.errors) {
+        else {
             Object.values(data.errors).forEach((v) => formElmnt.querySelector('.errorlist').innerText += `${v}\n`);
             formElmnt.querySelector('.errorlist').hidden = false;
         }
-    } else {
-        formElmnt.querySelector('.errorlist').innerText = "Ошибка постинга\n";
-        formElmnt.querySelector('.errorlist').hidden = false;
     }
 }
 
@@ -107,7 +101,7 @@ function truncateLongPosts() {
         if (t.textContent.length > 1500) {
             const span = document.createElement('span');
             span.className = 'func-btn';
-            span.innerText = '… Показать полностью';
+            span.innerText = ' ……[⤡]';
             const textAfter = t.innerHTML.substring(1100);
             t.innerHTML = t.innerHTML.substring(0, 1100);
             t.append(span);
@@ -122,7 +116,7 @@ function truncateLongPosts() {
 function expandVideo(click) {
     click.preventDefault();
     let spanBtn = document.createElement('span');
-    spanBtn.innerText = '[закрыть]';
+    spanBtn.innerText = '[❌]';
     spanBtn.className = 'video-close-btn';
     click.target.closest('.video-div').previousElementSibling.after(spanBtn);
     click.target.hidden = true;
@@ -230,8 +224,9 @@ function insertLinkIntoString(text, pos, url) {
     let end = document.createTextNode(text.slice(pos - text.length));
     let span = document.createElement('span');
     let a = document.createElement('a');
-    a.innerText = ' [раскрыть] ';
+    a.innerText = ' [⤡] ';
     a.href = 'https://' + url;
+    a.className = 'func-btn'
     span.appendChild(beginning);
     span.appendChild(a);
     if (text.length !== beginning.length) {

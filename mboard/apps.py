@@ -6,4 +6,8 @@ class MboardConfig(AppConfig):
     name = 'mboard'
 
     def ready(self):
-        from .signals import post_delete
+        import mboard.signals  # signals aren't imported automatically # noqa
+
+
+
+

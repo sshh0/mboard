@@ -2,7 +2,7 @@ from django.db.models.signals import post_delete, post_save
 from mboard.models import Post
 
 
-def delete_media(instance, **kwargs):  # Signal receivers must accept keyword arguments (**kwargs).
+def delete_media(instance, **kwargs):  # "Signal receivers must accept keyword arguments (**kwargs)"
     if instance.image:
         instance.image.delete(save=False)
         instance.thumbnail.delete(save=False)

@@ -1,8 +1,12 @@
+{% load i18n %}
 {% block header %}
   <div class="header">
-    {#    <a href="{% url 'mboard:main_page' %}" style="margin-left: 50px;">Home</a>#}
     <a href="{% url 'mboard:list_threads' 'b' %}" style="margin-left: 10px;">/b</a>
     <a href="{% url 'mboard:list_threads' 'test' %}" style="margin-left: 10px;">/test</a>
+    <a href="{% url 'mboard:list_threads' 'int' %}" style="margin-left: 10px;">/int</a>
     <a href="{% url 'mboard:info_page' %}" style="float: right;">?</a>
   </div>
+  <h1 style="text-align: center; color: #FFD97A; font-family: sans-serif">
+    <a href="./">{% translate board.board_name %}</a>
+  </h1>
 {% endblock header %}

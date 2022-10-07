@@ -1,29 +1,27 @@
 from pathlib import Path
 from dotenv import dotenv_values
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 dotenv_config = dotenv_values(".env")
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = dotenv_config['SECRET_KEY']
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
 ALLOWED_HOSTS = dotenv_config['ALLOWED_HOSTS'].split()
 
 APPEND_SLASH = True
 
-CAPTCHA_FONT_SIZE = 21
+CAPTCHA_FONT_SIZE = 27
 CAPTCHA_LETTER_ROTATION = None
-# CAPTCHA_CHALLENGE_FUNCT = 'mboard.views.random_digit_challenge'
 # CAPTCHA_TEST_MODE = True
 if Path.exists((BASE_DIR / 'captchawordsdict.txt')):
     CAPTCHA_WORDS_DICTIONARY = BASE_DIR / 'captchawordsdict.txt'
     CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.word_challenge'
     CAPTCHA_FONT_PATH = 'fonts/DejaVuSans.ttf'
+else:
+    CAPTCHA_CHALLENGE_FUNCT = 'mboard.views.random_digit_challenge'
 
 BBCODE_DISABLE_BUILTIN_TAGS = True
 BBCODE_ALLOW_SMILIES = False
@@ -46,15 +44,14 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     # "debug_toolbar.middleware.DebugToolbarMiddleware",
     'django.middleware.http.ConditionalGetMiddleware',
-
-    'django.middleware.security.SecurityMiddleware',
+    # 'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'projectconfig.urls'
@@ -119,6 +116,9 @@ USE_I18N = True
 
 USE_TZ = True
 
+LOCALE_PATHS = (
+    BASE_DIR / 'locale',
+)
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/

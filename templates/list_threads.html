@@ -1,7 +1,9 @@
 {% extends '_base.html' %}
+{% load i18n %}
 {% block content %}
   <div class="container threadList">
-    {% include 'postform.html' with postformbutton='Новый тред' %}
+    {% translate 'New thread' as btn %}
+    {% include 'postform.html' with postformbutton=btn %}
     <hr>
     {% for thread, posts in threads.items %}
       <section class="thread" data-threadid="{{ thread.pk }}">
@@ -10,7 +12,7 @@
           {% include 'post.html' %}
         {% endfor %}
       </section>
-      <div class="postcount">Всего постов: {{ thread.post_set.all|length|add:1 }}</div>
+      <div class="postcount">{% translate 'Posts in the thread:' %} {{ thread.post_set.all|length|add:1 }}</div>
       <hr>
     {% endfor %}
     <br>

@@ -8,8 +8,10 @@ class PostAdmin(admin.ModelAdmin):
     def post_shortened(self, obj):
         return obj.text[:20]
 
+
 class BoardAdmin(admin.ModelAdmin):
-    list_display = ['board_name', 'id']
+    list_display = ['board_link', 'id']
+
 
 admin.site.register(Post, PostAdmin)
 admin.site.register(Board, BoardAdmin)

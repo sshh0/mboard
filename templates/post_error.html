@@ -1,10 +1,11 @@
 {% extends '_base.html' %}
+{% load i18n %}
 {% block content %}
   <div class="container captcha-error">
   <form id="postForm" action="" method="post" enctype="multipart/form-data">
     <div style="display: flex;">
       {{ form.poster }}
-      <button style="float: right" type="submit">Ответить</button>
+      <button style="float: right" type="submit">{% translate 'Send' %}</button>
     </div>
     {{ form.text }}
     {{ form.thread_id.as_hidden }}
@@ -13,7 +14,7 @@
       <button class="clear-file-btn" type="button">❌</button>
     </div>
     {% csrf_token %}
-    <div hidden class="errorlist">Ошибка в капче</div>
+    <div hidden class="errorlist">{% translate 'Captcha error' %}</div>
   </form>
 {% endblock %}
 </div>

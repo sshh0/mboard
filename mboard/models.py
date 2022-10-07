@@ -29,7 +29,8 @@ class Post(models.Model):
 
 
 class Board(models.Model):
+    board_link = models.CharField(max_length=5, blank=False, null=False)
     board_name = models.CharField(max_length=20, blank=False, null=False)
 
     def __str__(self):
-        return self.board_name
+        return self.board_link

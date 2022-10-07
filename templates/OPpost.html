@@ -1,4 +1,5 @@
 {% load extra %}
+{% load i18n %}
 <article class="opPost" id="id{{ thread.pk }}" data-id="{{ thread.pk }}">
   <div class="opPostHeader">
     <span>
@@ -6,7 +7,7 @@
       <span class="date" data-unixtime="{{ thread.date|date:"U" }}">{{ thread.date|date:'d/m/Y, H:i:s' }}</span>
       №:<a class="postLink" href="#id{{ thread.pk }}">{{ thread.pk }}</a>
     </span>
-    <a class="threadlink" href="{{ thread.get_absolute_url }}">В тред</a>
+    <a class="threadlink" href="{{ thread.get_absolute_url }}">{% translate 'Reply' %}</a>
   </div>
   {% if thread.video_thumb %}
     <div class="video-link">

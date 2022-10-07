@@ -1,9 +1,10 @@
 {% extends '_base.html' %}
+{% load i18n %}
 {% block content %}
   <div class="container threadPage">
     <div class="navdiv-top">
-      <a href="../../">Назад</a>
-      <a href="#bottom">Вниз</a>
+      <a href="../../">{% translate 'Back' %}</a>
+      <a href="#bottom">{% translate 'Bottom' %}</a>
     </div>
     <hr>
     <section class="thread" data-threadid="{{ thread.pk }}">
@@ -14,12 +15,13 @@
     </section>
     <hr>
     <div class="navdiv-bottom">
-      <a href="../../">Назад</a>
-      <a href="#top">Вверх</a>
-      <a class="js-fetch-new-posts">Обновить тред</a>
-      <span hidden id="fetchStatus">Нет новых постов</span>
+      <a href="../../">{% translate 'Back' %}</a>
+      <a href="#top">{% translate 'Top' %}</a>
+      <a class="js-fetch-new-posts">{% translate 'Update' %}</a>
+      <span hidden id="fetchStatus">{% translate 'No new posts' %}</span>
     </div>
-    {% include 'postform.html' with postformbutton='Ответить' %}
+    {% translate 'Send' as btn %}
+    {% include 'postform.html' with postformbutton=btn %}
     {% include 'quickpostform.html' %}
     <div id="bottom"></div>
   </div>

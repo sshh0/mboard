@@ -108,10 +108,12 @@ details {
 }
 
 summary {
-    margin-left: 45%;
+    /*margin-left: 45%;*/
     margin-bottom: 2%;
     list-style: none;
-    display: inline;
+    /*display: inline;*/
+    display: flex;
+    justify-content: center;
 }
 
 #postForm {
@@ -135,7 +137,7 @@ textarea {
     font-size: inherit;
     font-family: inherit;
     outline: none;
-    border: none ;
+    border: none;
     display: block;
     width: calc(99%);
     /*width: -moz-available;*/
@@ -155,7 +157,7 @@ input {
     background: inherit;
     outline: none;
     color: #FEC77D;
-    border: 1px solid gray ;
+    border: 1px solid gray;
     flex-grow: 1;
 }
 
@@ -216,6 +218,9 @@ a {
     font-size: large;
     color: #FFD97A;
     cursor: pointer;
+}
+#showFormButton:hover {
+    color: #a74300;
 }
 
 .imglink {
@@ -305,7 +310,7 @@ hr {
 
 .video-link {
     font-size: 11px;
-/*    display: inline-block;*/
+    /*    display: inline-block;*/
 }
 
 .video-thumb {
@@ -331,9 +336,18 @@ hr {
 .func-btn {
     color: grey;
     cursor: pointer;
+    font-size: x-large;
 }
 
 #num {
     font-weight: bold;
     color: #FFD97A;
+}
+
+.post-frm-btn {
+    float: right;
+}
+
+a:hover {
+    color: #a74300
 }

@@ -2,18 +2,31 @@ from email.utils import parsedate_to_datetime
 from random import randint
 from captcha.models import CaptchaStore
 from django.shortcuts import render, redirect, reverse, get_object_or_404
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
+from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.core.paginator import Paginator
 from django.views.decorators.http import last_modified
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from datetime import timedelta
 from mboard.models import Post, Board
 from .forms import PostForm, ThreadPostForm
 
 
+def try_get_post(*args, **kwargs):
+    if kwargs['board']:
+        board = get_object_or_404(Board, board_link=kwargs['board'])
+        if board.post_set.exists():
+            return Board.objects.get(board_link=kwargs['board']).post_set.last().date
+    elif kwargs['thread_id']:
+        post = get_object_or_404(Post, pk=kwargs['thread_id'])
+        if post.post_set.exists():
+            return Post.objects.get(pk=kwargs['thread_id']).post_set.last().date
+
+
+@last_modified(try_get_post)
 def list_threads(request, board, pagenum=1):
-    board = get_object_or_404(Board, board_name=board)
+    board = get_object_or_404(Board, board_link=board)
     if request.method == 'POST':
         form = ThreadPostForm(data=request.POST, files=request.FILES)
         if form.is_valid():
@@ -24,8 +37,7 @@ def list_threads(request, board, pagenum=1):
         return render(request, 'post_error.html', {'form': form, 'board': board})
     form = ThreadPostForm()
     threads = board.post_set.all().filter(thread__isnull=True).order_by('-bump')
-    threads_dict = {}
-    posts_ids = {}
+    threads_dict, posts_ids = {}, {}
     paginator = Paginator(threads, 10)
     threads = paginator.page(number=pagenum)
     for thread in threads:
@@ -37,7 +49,9 @@ def list_threads(request, board, pagenum=1):
     return render(request, 'list_threads.html', context)
 
 
+@last_modified(try_get_post)
 def get_thread(request, thread_id, board):
+    print(board)
     if request.method == 'POST':
         form = PostForm(data=request.POST, files=request.FILES)  # , use_required_attribute=False
         if form.is_valid():
@@ -50,8 +64,9 @@ def get_thread(request, thread_id, board):
             return redirect(
                 reverse('mboard:get_thread', kwargs={'thread_id': thread_id, 'board': board}) + f'#id{new_post.id}')
         return render(request, 'post_error.html', {'form': form, 'board': board})
+    board = get_object_or_404(Board, board_link=board)
+    thread = get_object_or_404(Post, pk=thread_id)
     form = PostForm(initial={'thread_id': thread_id})
-    thread = Post.objects.get(pk=thread_id)
     context = {'thread': thread, 'posts_ids': {thread.pk: thread.posts_ids()}, 'form': form, 'board': board}
     return render(request, 'thread.html', context)
 
@@ -66,12 +81,12 @@ def ajax_posting(request):
             new_post = form.save(commit=False)
             if form.data['thread_id']:
                 new_post.thread_id = form.data['thread_id']
-            new_post.board = Board.objects.get(board_name=request.POST['board'])
+            new_post.board = Board.objects.get(board_link=request.POST['board'])
             new_post.save()  # '.id' doesn't exist before saving
             thread_id = new_post.thread_id if new_post.thread_id else new_post.id
             return JsonResponse({"postok": 'ok', 'thread_id': thread_id})
         return JsonResponse({'errors': form.errors})
-    return HttpResponseBadRequest()
+    return JsonResponse({'errors': _('Posting error')})
 
 
 def ajax_tooltips_onhover(request, thread_id, **kwargs):
@@ -114,17 +129,20 @@ def captcha_ajax_validation(request):
     if cs:
         json_data = {'status': 1}
     else:
-        json_data = {'status': 0}
+        json_data = {'status': 0, 'err': _('Invalid captcha')}
     return JsonResponse(json_data)
 
 
+@last_modified(lambda *args, **kwargs: Post.objects.last().date if Post.objects.count() > 0 else '')
 def info_page(request):
-    plast24h = Post.objects.all().filter(date__gte=timezone.now() - timedelta(hours=24)).count()
-    context = {'firstp_date': Post.objects.first().date,
-               'lastp_date': Post.objects.last().date,
-               'tcount': Post.objects.filter(thread=None).count(),
-               'pcount': Post.objects.count(),
-               'bcount': Board.objects.count(),
-               'plast24h': plast24h,
-               'board': 'Статистика'}
-    return HttpResponse(render_to_string('info_page.html', context, request))
+    context = {'board': ''}
+    try:
+        context['plast24h'] = Post.objects.all().filter(date__gte=timezone.now() - timedelta(hours=24)).count()
+        context['firstp_date'] = Post.objects.first().date
+        context['lastp_date'] = Post.objects.last().date
+        context['tcount'] = Post.objects.filter(thread=None).count()
+        context['pcount'] = Post.objects.count()
+        context['bcount'] = Board.objects.count()
+        return render(request, 'info_page.html', context)
+    except Exception:
+        return render(request, 'info_page.html', context)

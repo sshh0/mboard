@@ -1,19 +1,19 @@
 {% load static %}
+{% load i18n %}
 <form hidden id="quickPostForm" action="" method="post"
       enctype="multipart/form-data">
   <img loading="lazy" id='closebutton' alt="Close" style="float: left" src="{% static 'closebutton.svg' %}">
   <div id='quickPostHeader' style="cursor: move; text-align: center">
-    <span>Ответить в тред</span>
+    <span>{% translate 'Reply to the thread' %}</span>
     <span id="num"></span>
   </div>
   <div style="display: flex;">
     {{ form.poster }}
-    <button id='quick-post-btn' style="float: right" type="submit">Отправить</button>
+    <button class='post-frm-btn' type="submit">{% translate 'Send' %}</button>
   </div>
   {{ form.text }}
   {{ form.thread_id.as_hidden }}
   <div>{{ form.captcha }}</div>
-  {% csrf_token %}
   <input type="hidden" name="board" value="{{ board }}">
   <div style="clear: both">
     {{ form.file }}
