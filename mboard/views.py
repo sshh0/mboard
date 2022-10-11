@@ -11,20 +11,11 @@ from django.utils.translation import gettext as _
 from datetime import timedelta
 from mboard.models import Post, Board
 from .forms import PostForm, ThreadPostForm
+from django.views.decorators.cache import cache_page, never_cache
 
 
-def try_get_post(*args, **kwargs):
-    if kwargs['board']:
-        board = get_object_or_404(Board, board_link=kwargs['board'])
-        if board.post_set.exists():
-            return Board.objects.get(board_link=kwargs['board']).post_set.last().date
-    elif kwargs['thread_id']:
-        post = get_object_or_404(Post, pk=kwargs['thread_id'])
-        if post.post_set.exists():
-            return Post.objects.get(pk=kwargs['thread_id']).post_set.last().date
-
-
-@last_modified(try_get_post)
+@never_cache  # adds headers to response to disable browser cache
+@cache_page(3600)  # cache also resets (signals.py) after saving a new post, so it's only useful under a small load
 def list_threads(request, board, pagenum=1):
     board = get_object_or_404(Board, board_link=board)
     if request.method == 'POST':
@@ -49,11 +40,11 @@ def list_threads(request, board, pagenum=1):
     return render(request, 'list_threads.html', context)
 
 
-@last_modified(try_get_post)
+@never_cache  # all this stuff with cachings seems quite useless under a small load
+@cache_page(3600)  # was just interested how caching works
 def get_thread(request, thread_id, board):
-    print(board)
     if request.method == 'POST':
-        form = PostForm(data=request.POST, files=request.FILES)  # , use_required_attribute=False
+        form = PostForm(data=request.POST, files=request.FILES)
         if form.is_valid():
             new_post = form.save(commit=False)
             new_post.thread_id = thread_id
@@ -133,7 +124,7 @@ def captcha_ajax_validation(request):
     return JsonResponse(json_data)
 
 
-@last_modified(lambda *args, **kwargs: Post.objects.last().date if Post.objects.count() > 0 else '')
+@cache_page(3600)
 def info_page(request):
     context = {'board': ''}
     try:

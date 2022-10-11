@@ -248,7 +248,7 @@ a {
 
 hr {
     clear: both;
-    color: dimgrey
+    border-color: dimgrey
 }
 
 .navdiv-bottom a {
