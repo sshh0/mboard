@@ -1,10 +1,11 @@
 from email.utils import parsedate_to_datetime
 from random import randint
+from django.conf import settings
 from captcha.models import CaptchaStore
 from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.http import JsonResponse
 from django.template.loader import render_to_string
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, InvalidPage
 from django.views.decorators.http import last_modified
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -30,7 +31,10 @@ def list_threads(request, board, pagenum=1):
     threads = board.post_set.all().filter(thread__isnull=True).order_by('-bump')
     threads_dict, posts_ids = {}, {}
     paginator = Paginator(threads, 10)
-    threads = paginator.page(number=pagenum)
+    try:
+        threads = paginator.page(number=pagenum)
+    except InvalidPage:
+        return redirect(reverse('mboard:list_threads', kwargs={'board': board}))
     for thread in threads:
         posts_to_display = thread.post_set.all().order_by('-date')[:4]
         threads_dict[thread] = reversed(posts_to_display)
@@ -40,8 +44,8 @@ def list_threads(request, board, pagenum=1):
     return render(request, 'list_threads.html', context)
 
 
-@never_cache  # all this stuff with cachings seems quite useless under a small load
-@cache_page(3600)  # was just interested how caching works
+@never_cache
+@cache_page(3600)
 def get_thread(request, thread_id, board):
     if request.method == 'POST':
         form = PostForm(data=request.POST, files=request.FILES)
@@ -64,13 +68,13 @@ def get_thread(request, thread_id, board):
 
 def ajax_posting(request):
     if request.method == 'POST':
-        if request.POST['thread_id']:
+        if request.POST.get('thread_id'):  # it's a post to an existing thread
             form = PostForm(data=request.POST, files=request.FILES)
-        else:
+        else:  # post to create new thread
             form = ThreadPostForm(data=request.POST, files=request.FILES)
         if form.is_valid():
             new_post = form.save(commit=False)
-            if form.data['thread_id']:
+            if form.data.get('thread_id'):
                 new_post.thread_id = form.data['thread_id']
             new_post.board = Board.objects.get(board_link=request.POST['board'])
             new_post.save()  # '.id' doesn't exist before saving
@@ -117,7 +121,7 @@ def random_digit_challenge():
 
 def captcha_ajax_validation(request):
     cs = CaptchaStore.objects.filter(response=request.GET['captcha'], hashkey=request.GET['hash'])
-    if cs:
+    if cs or settings.CAPTCHA_TEST_MODE:
         json_data = {'status': 1}
     else:
         json_data = {'status': 0, 'err': _('Invalid captcha')}

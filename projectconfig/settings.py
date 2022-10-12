@@ -15,7 +15,7 @@ APPEND_SLASH = True
 
 CAPTCHA_FONT_SIZE = 27
 CAPTCHA_LETTER_ROTATION = None
-# CAPTCHA_TEST_MODE = True
+CAPTCHA_TEST_MODE = False
 if Path.exists((BASE_DIR / 'captchawordsdict.txt')):
     CAPTCHA_WORDS_DICTIONARY = BASE_DIR / 'captchawordsdict.txt'
     CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.word_challenge'

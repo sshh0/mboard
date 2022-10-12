@@ -6,7 +6,6 @@ from magic import from_buffer
 from django.core.files.base import ContentFile
 from io import BytesIO
 from PIL import Image
-from django.core.files.uploadedfile import InMemoryUploadedFile
 from pathlib import Path
 from django.utils.translation import gettext_lazy as _
 
@@ -67,6 +66,6 @@ def make_thumbnail(inmemory_image):
     image.thumbnail(size=(200, 220))
     output = BytesIO()
     image.save(output, quality=85, format=image.format)
-    thumb = InMemoryUploadedFile(
-        output, 'ImageField', 'thumb_' + inmemory_image.name, 'image/jpeg', None, None)
+    output.seek(0)
+    thumb = ContentFile(output.read(), name='thumb_' + inmemory_image.name)
     return thumb

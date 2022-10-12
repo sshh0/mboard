@@ -20,7 +20,7 @@ bbcodetags = {  # key should be == value[0]; 's'=='s', 'i'=='i'...
 }
 
 
-def create_boards(apps, schema_editor):
+def prepopulate_db(apps, schema_editor):
     Board = apps.get_model('mboard', 'Board')
     for k, v in boards.items():
         Board.objects.create(board_link=k, board_name=v)
@@ -37,5 +37,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(create_boards)
+        migrations.RunPython(prepopulate_db)
     ]
