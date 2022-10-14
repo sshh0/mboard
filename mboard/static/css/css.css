@@ -181,10 +181,12 @@ form {
 
 #id_captcha_1 {
     line-height: 3;
+    width: 70px;
 }
 
 .captcha {
-    float: left
+    float: left;
+    width: 70px;
 }
 
 
@@ -346,8 +348,27 @@ hr {
 
 .post-frm-btn {
     float: right;
+    background: darkgray;
+    border: none;
 }
 
 a:hover {
     color: #a74300
 }
+
+.markup {
+    background: darkgray;
+    border: 1px solid black;
+    cursor: pointer;
+}
+
+.btn-s {
+    text-decoration: line-through;
+}
+.btn-i {
+    font-style: italic;
+}
+.btn-b {
+    font-weight: bold;
+}
+

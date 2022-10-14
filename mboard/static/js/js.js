@@ -4,7 +4,8 @@ const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 const quickPostForm = document.getElementById('quickPostForm');
 const postsLinks = $$('.post .postHeader .postLink, .opPost > .opPostHeader .postLink');
-const quickPostFormTextArea = $('#quickPostForm > textarea');
+const quickPostFormTextArea = document.querySelector('#quickPostForm > textarea');
+const postForm = document.getElementById('postForm');
 const onClick = twoTapsOnTouchDevices();
 
 for (let f of document.getElementsByTagName('form')) f.addEventListener('submit', submitForm);
@@ -19,6 +20,18 @@ $$('#id_file').forEach(function (file) {
     file.addEventListener('change', (ev) => ev.target.nextElementSibling.style.visibility = 'visible');
 });
 captchaRefresh();
+
+function markUpBtn(btn, tagStart, tagEnd) {
+    let elmnt = btn.form.querySelector('textarea');
+    let selStart = elmnt.selectionStart;
+    let selEnd = elmnt.selectionEnd;
+    let textBefore = elmnt.value.substring(0, selStart);
+    let selected = elmnt.value.substring(selStart, selEnd);
+    let textAfter = elmnt.value.substring(selEnd, elmnt.value.length);
+    elmnt.value = textBefore + tagStart + selected + tagEnd + textAfter;
+    elmnt.setSelectionRange(selStart+tagStart.length, selEnd+tagStart.length);
+    elmnt.focus();
+}
 
 if ($('.threadList,.threadPage')) { // at least one class ("OR")
     showQuickPostForm();
@@ -39,6 +52,11 @@ if ($('.threadList,.threadPage')) { // at least one class ("OR")
             }
         }
     });
+    if ($('.threadPage')) {
+        let textAreas = $$('form textarea');
+        textAreas[0].addEventListener('input', () => textAreas[1].value = textAreas[0].value)
+        textAreas[1].addEventListener('input', () => textAreas[0].value = textAreas[1].value)
+    }
     if ($('.container').classList.contains('threadList')) truncateLongPosts();
     if ($$('.page-link').length === 1) $('.page-link').hidden = true;
 }
@@ -88,8 +106,7 @@ async function makePost(form, formElmnt) {
             if ($('.threadList')) {
                 location.href = location.pathname + 'thread/' + data['thread_id'] + '/#bottom';
             }
-        }
-        else {
+        } else {
             Object.values(data.errors).forEach((v) => formElmnt.querySelector('.errorlist').innerText += `${v}\n`);
             formElmnt.querySelector('.errorlist').hidden = false;
         }
@@ -367,7 +384,6 @@ function fetchNewPosts() {
         const lastPostDate = new Date(timestamp * 1000);  //milliseconds to seconds
         lastPostDate.setSeconds(lastPostDate.getSeconds() + 1);
         return lastPostDate.toUTCString();
-
     }
 }
 
@@ -425,23 +441,31 @@ function showQuickPostForm() {
 
 function setTextValue(ev) {
     ev.preventDefault();
-    quickPostForm.hidden = false;
-    if (!quickPostForm.hidden) {
-        quickPostFormTextArea.setRangeText(`>>` + ev.target.closest('article').dataset.id + '\n');
-        quickPostFormTextArea.selectionStart = quickPostFormTextArea.selectionEnd = quickPostFormTextArea.value.length;
-        try {
-            if (window.getSelection().anchorNode.parentElement.closest('article').id === ev.target.closest('article').id) {
-                const selectedText = window.getSelection().toString().trimEnd();
-                quickPostFormTextArea.value += '>';
-                quickPostFormTextArea.value += selectedText.replace(/\n/g, '\n>');
-                quickPostFormTextArea.value += '\n';
-            }
-        } catch (e) {
-        }
-        quickPostForm.elements['id_thread_id'].value = ev.target.closest('section').dataset.threadid;
-        $('#quickPostHeader #num').innerText = '№ ' + ev.target.closest('section').dataset.threadid;
-        quickPostFormTextArea.focus();
+    let textArea;
+    if ($('details').open && $('.threadPage')) {
+        textArea = postForm.elements['text'];
+    } else {
+        textArea = quickPostForm.elements['text'];
+        quickPostForm.hidden = false;
     }
+    textArea.setRangeText(`>>` + ev.target.closest('article').dataset.id + '\n');
+    textArea.selectionStart = textArea.selectionEnd = textArea.value.length;
+    try {
+        if (window.getSelection().anchorNode.parentElement.closest('article').id === ev.target.closest('article').id) {
+            const selectedText = window.getSelection().toString().trimEnd();
+            if (selectedText.length > 0) {
+                textArea.value += '>';
+                textArea.value += selectedText.replace(/\n/g, '\n>');
+                textArea.value += '\n';
+            }
+        }
+    } catch (e) {
+    }
+    quickPostForm.elements['id_thread_id'].value = ev.target.closest('section').dataset.threadid;
+    $('#quickPostHeader #num').innerText = '№ ' + ev.target.closest('section').dataset.threadid;
+    textArea.focus();
+    textArea.dispatchEvent(new Event('input'));
+
 }
 
 function dragPostForm(elmnt) {

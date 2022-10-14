@@ -8,10 +8,17 @@
       <button class='post-frm-btn' type="submit">{% translate 'Send' %}</button>
     </div>
     {{ form.text }}
-    {{ form.thread_id.as_hidden }}
+    <div style="border: 1px solid gray">
+      <button type="button" class="markup btn-s" onclick="markUpBtn(this, '[s]', '[/s]')">[S]</button>
+      <button type="button" class="markup btn-i" onclick="markUpBtn(this, '[i]', '[/i]')">[I]</button>
+      <button type="button" class="markup btn-b" onclick="markUpBtn(this, '[b]', '[/b]')">[B]</button>
+      <button type="button" class="markup btn-spoiler" onclick="markUpBtn(this, '[spoiler]', '[/spoiler]')">[ ]</button>
+      <button type="button" class="markup arrow" onclick="markUpBtn(this, '>', '')">[>]</button>
+      <button type="button" class="markup" onclick="markUpBtn(this, '[roll]', '')">[roll]</button>
+    </div>
     {{ form.captcha }}
     <input type="hidden" name="board" value="{{ board }}">
-    <input type="hidden" value="{{ board }}">
+    {{ form.thread_id.as_hidden }}
     <div style="clear: both">
       {{ form.file }}
       <button class="clear-file-btn" type="button">❌</button>

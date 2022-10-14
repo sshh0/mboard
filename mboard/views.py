@@ -70,7 +70,7 @@ def ajax_posting(request):
     if request.method == 'POST':
         if request.POST.get('thread_id'):  # it's a post to an existing thread
             form = PostForm(data=request.POST, files=request.FILES)
-        else:  # post to create new thread
+        else:  # new thread
             form = ThreadPostForm(data=request.POST, files=request.FILES)
         if form.is_valid():
             new_post = form.save(commit=False)
@@ -130,7 +130,7 @@ def captcha_ajax_validation(request):
 
 @cache_page(3600)
 def info_page(request):
-    context = {'board': ''}
+    context = {'board': ' '}
     try:
         context['plast24h'] = Post.objects.all().filter(date__gte=timezone.now() - timedelta(hours=24)).count()
         context['firstp_date'] = Post.objects.first().date

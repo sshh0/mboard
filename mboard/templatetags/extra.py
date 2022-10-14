@@ -21,8 +21,7 @@ def customize_post_string(post_string, thread_id, posts_ids, post_id):
     post_string = color_quoted_text(post_string)
     parser = get_parser()
     post_string = parser.render(post_string)
-    if thread_id == 100381 or thread_id == 100265:
-        post_string = roll_game(post_string, post_id)
+    post_string = roll_game(post_string, post_id)
     return mark_safe(post_string.replace("\n", "<br>"))
 
 
