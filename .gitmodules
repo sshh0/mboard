@@ -1,0 +1,3 @@
+[submodule "libs/meritrank"]
+	path = libs/meritrank
+	url = git@github.com:grimadas/meritrank.git

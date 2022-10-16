@@ -3,20 +3,68 @@ from random import randint
 from django.conf import settings
 from captcha.models import CaptchaStore
 from django.shortcuts import render, redirect, reverse, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
 from django.core.paginator import Paginator, InvalidPage
 from django.views.decorators.http import last_modified
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from datetime import timedelta
-from mboard.models import Post, Board
+from mboard.models import Post, Board, Rating, CalcTime
 from .forms import PostForm, ThreadPostForm
 from django.views.decorators.cache import cache_page, never_cache
+from trust.pagerank import PersonalizedPageRank
+import networkx as nx
+from django.contrib.sessions.models import Session
+# import matplotlib.pyplot as plt
+
+
+def testfunc(request):
+    if not request.session.session_key:
+        request.session.create()
+    user = Session.objects.get(session_key=request.session.session_key)
+    obj, created = CalcTime.objects.get_or_create(user=user, defaults={'user': user})
+    if created is True or obj.rank_calc_time < timezone.now():  # session was just created or expired
+        G = nx.DiGraph()
+        for node in Rating.objects.all():
+            G.add_edge(node.user, node.target, weight=node.vote)
+        rep = calc_rep(G, user)
+        for target, rank in rep.items():
+            print(user, target, rank)
+            Rating.objects.update_or_create(user=user,
+                                            target=target,
+                                            defaults={'rank': rank})
+    else:
+        for i in Rating.objects.filter(user=user).order_by('-rank'):  # up to date session, sort results by rank
+            print(i, i.rank)
+
+
+def calc_rep(graph, seed_node):
+    ppr = PersonalizedPageRank(graph, seed_node, reset_probability=0.0)
+    reputation = {}
+    for n in graph.nodes():
+        if n != seed_node:
+            reputation[n] = ppr.compute(seed_node, n)
+    return reputation
+
+
+# def vote(voter, author, amount=1):
+#     weight = G.get_edge_data(voter, author, default={'weight': 0})['weight'] + amount
+#     G.add_edge(voter, author, weight=weight)
+
+
+# def vis_graph(g):
+#     # Visualize the graph, for clarity
+#     pos = nx.spring_layout(g)
+#     nx.draw_networkx(g, pos, font_size=7)
+#     labels = nx.get_edge_attributes(g, 'weight')
+#     nx.draw_networkx_edge_labels(g, pos, edge_labels=labels)
+#
+#     plt.savefig("filename.png")
 
 
 @never_cache  # adds headers to response to disable browser cache
-@cache_page(3600)  # cache also resets (signals.py) after saving a new post, so it's only useful under a small load
+# @cache_page(3600)  # cache also resets (signals.py) after saving a new post, so it's only useful under a small load
 def list_threads(request, board, pagenum=1):
     board = get_object_or_404(Board, board_link=board)
     if request.method == 'POST':
@@ -24,9 +72,11 @@ def list_threads(request, board, pagenum=1):
         if form.is_valid():
             new_thread = form.save(commit=False)
             new_thread.board = board
+            new_thread.session_id = request.session.session_key
             new_thread.save()
             return redirect(reverse('mboard:get_thread', kwargs={'thread_id': new_thread.id, 'board': board}))
         return render(request, 'post_error.html', {'form': form, 'board': board})
+    testfunc(request)
     form = ThreadPostForm()
     threads = board.post_set.all().filter(thread__isnull=True).order_by('-bump')
     threads_dict, posts_ids = {}, {}
@@ -45,13 +95,14 @@ def list_threads(request, board, pagenum=1):
 
 
 @never_cache
-@cache_page(3600)
+# @cache_page(3600)
 def get_thread(request, thread_id, board):
     if request.method == 'POST':
         form = PostForm(data=request.POST, files=request.FILES)
         if form.is_valid():
             new_post = form.save(commit=False)
             new_post.thread_id = thread_id
+            new_post.session_id = request.session.session_key
             new_post.thread.bump = new_post.bump
             new_post.thread.save()
             new_post.board = new_post.thread.board
@@ -61,6 +112,8 @@ def get_thread(request, thread_id, board):
         return render(request, 'post_error.html', {'form': form, 'board': board})
     board = get_object_or_404(Board, board_link=board)
     thread = get_object_or_404(Post, pk=thread_id)
+    if not request.session.session_key:
+        request.session.create()
     form = PostForm(initial={'thread_id': thread_id})
     context = {'thread': thread, 'posts_ids': {thread.pk: thread.posts_ids()}, 'form': form, 'board': board}
     return render(request, 'thread.html', context)
@@ -74,6 +127,7 @@ def ajax_posting(request):
             form = ThreadPostForm(data=request.POST, files=request.FILES)
         if form.is_valid():
             new_post = form.save(commit=False)
+            new_post.session_id = request.session.session_key
             if form.data.get('thread_id'):
                 new_post.thread_id = form.data['thread_id']
             new_post.board = Board.objects.get(board_link=request.POST['board'])
@@ -139,5 +193,15 @@ def info_page(request):
         context['pcount'] = Post.objects.count()
         context['bcount'] = Board.objects.count()
         return render(request, 'info_page.html', context)
-    except Exception:
+    except Exception:  # noqa
         return render(request, 'info_page.html', context)
+
+
+def post_vote(request):
+    vote = request.GET['vote']
+    post = Post.objects.get(pk=int(request.GET['post']))
+    if vote and post:
+        post.vote += 1 if int(vote) == 1 else -1
+        post.save()
+        return JsonResponse({'vote': post.vote})
+    return HttpResponse(status=400)

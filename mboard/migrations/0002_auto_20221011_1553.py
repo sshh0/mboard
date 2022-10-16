@@ -23,7 +23,7 @@ bbcodetags = {  # key should be == value[0]; 's'=='s', 'i'=='i'...
 def prepopulate_db(apps, schema_editor):
     Board = apps.get_model('mboard', 'Board')
     for k, v in boards.items():
-        Board.objects.create(board_link=k, board_name=v)
+        Board.objects.create(board_link=k, board_title=v)
 
     BBCodeTag = apps.get_model('precise_bbcode', 'BBCodeTag')
     for k, v in bbcodetags.items():

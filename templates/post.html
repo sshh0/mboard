@@ -3,6 +3,11 @@
   <div class="postHeader">{{ post.poster }}
     <span class="date" data-unixtime="{{ post.date|date:"U" }}">{{ post.date|date:'d/m/Y, H:i:s' }}</span>
     №:<a class="postLink" href="{{ thread.get_absolute_url }}#id{{ post.pk }}">{{ post.pk }}</a>
+    <div id="voting" style="display: inline-block">
+      <button id="downvote" type="button" onclick="vote(this, 0)">-</button>
+      <span id="vote" style="color: red">{{ post.vote }}</span>
+      <button id="upvote" type="button" onclick="vote(this, 1)">+</button>
+    </div>
   </div>
   {% if post.video_thumb %}
     <div class="video-link">
@@ -24,6 +29,6 @@
       <a href="{{ post.image.url }}"><img loading="lazy" class="image" src="{{ post.thumbnail.url }}" alt=""></a>
     </div>
   {% endif %}
-  <div class="text">{% customize_post_string post.text thread.pk posts_ids post.pk%}</div>
+  <div class="text">{% customize_post_string post.text thread.pk posts_ids post.pk %}</div>
   <div class="replies"></div>
 </article>
