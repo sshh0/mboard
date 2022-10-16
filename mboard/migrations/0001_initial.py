@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('board_link', models.CharField(max_length=5)),
-                ('board_name', models.CharField(max_length=20)),
+                ('board_title', models.CharField(max_length=20)),
             ],
         ),
         migrations.CreateModel(

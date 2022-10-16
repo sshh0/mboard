@@ -29,7 +29,7 @@ function markUpBtn(btn, tagStart, tagEnd) {
     let selected = elmnt.value.substring(selStart, selEnd);
     let textAfter = elmnt.value.substring(selEnd, elmnt.value.length);
     elmnt.value = textBefore + tagStart + selected + tagEnd + textAfter;
-    elmnt.setSelectionRange(selStart+tagStart.length, selEnd+tagStart.length);
+    elmnt.setSelectionRange(selStart + tagStart.length, selEnd + tagStart.length);
     elmnt.focus();
 }
 
@@ -481,12 +481,21 @@ function dragPostForm(elmnt) {
     }
 
     function elementDrag(e) {
+        let winW = document.body.clientWidth;
+        let winH = document.body.clientHeight;
+        let maxX = winW - elmnt.parentNode.offsetWidth;
+        let maxY = winH - elmnt.parentNode.offsetHeight;
+
         pos1 = pos3 - e.clientX;
         pos2 = pos4 - e.clientY;
         pos3 = e.clientX;
         pos4 = e.clientY;
-        elmnt.parentNode.style.top = (elmnt.parentNode.offsetTop - pos2) + "px";
-        elmnt.parentNode.style.left = (elmnt.parentNode.offsetLeft - pos1) + "px";
+        if((elmnt.parentNode.offsetTop - pos2) <= maxY && (elmnt.parentNode.offsetTop - pos2) >= 0){
+            elmnt.parentNode.style.top = (elmnt.parentNode.offsetTop - pos2) + "px";
+        }
+        if((elmnt.parentNode.offsetLeft - pos1) <= maxX && (elmnt.parentNode.offsetLeft - pos1) >= 0){
+            elmnt.parentNode.style.left = (elmnt.parentNode.offsetLeft - pos1) + "px";
+        }
     }
 
     function closeDragElement() {
