@@ -24,7 +24,7 @@
 
 body {
     background: scroll #211F1A url('muon_bg.jpg') repeat;
-    min-height: 100vh;
+    /*min-height: 100vh;*/
     margin: 0;
     color: #C6985C;
 
@@ -190,24 +190,19 @@ form {
 }
 
 
-@media only screen and (hover: none) and (pointer: coarse) {
+/*@media only screen and (hover: none) and (pointer: coarse) {*/
+@media only screen and (max-width: 768px) {
     #quickPostForm {
         left: 0;
+        position: sticky;
+        bottom: 0;
     }
-
     .image {
         max-width: 150px;
     }
-
     .container {
         margin-left: 0;
         margin-right: 0;
-    }
-
-    #quickPostForm {
-        position: fixed;
-        left: 0;
-        top: 0;
     }
 }
 

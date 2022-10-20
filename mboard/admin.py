@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Post, Board
+from .models import Post, Board, Rating
 
 
 class PostAdmin(admin.ModelAdmin):
@@ -13,5 +13,10 @@ class BoardAdmin(admin.ModelAdmin):
     list_display = ['board_link', 'id']
 
 
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ['user', 'target', 'vote', 'rank']
+
+
 admin.site.register(Post, PostAdmin)
 admin.site.register(Board, BoardAdmin)
+admin.site.register(Rating, RatingAdmin)

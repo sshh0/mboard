@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-07 17:33+0300\n"
+"POT-Creation-Date: 2022-10-14 18:52+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,69 +17,70 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: mboard/forms.py:18
+#: mboard/forms.py:17
 msgid "Anon"
 msgstr "Анон"
 
-#: mboard/forms.py:20 mboard/views.py:128
+#: mboard/forms.py:19 mboard/views.py:127
 msgid "Invalid captcha"
 msgstr "Неверная капча"
 
-#: mboard/forms.py:31
+#: mboard/forms.py:30
 msgid "Enter the message"
 msgstr "Введите сообщение"
 
-#: mboard/forms.py:39
+#: mboard/forms.py:38
 msgid "Image size > 1 MB"
 msgstr "Картинка > 1 МБ"
 
-#: mboard/forms.py:45
+#: mboard/forms.py:44
 msgid "Video size > 5 MB"
 msgstr "Размер видео > 5 МБ"
 
-#: mboard/forms.py:51
+#: mboard/forms.py:50
 msgid "File uploading error"
 msgstr "Ошибка загрузки файла"
 
-#: mboard/forms.py:55
+#: mboard/forms.py:54
 msgid "Only webm/mp4"
 msgstr "Только webm/mp4"
 
-#: mboard/forms.py:57
+#: mboard/forms.py:56
 msgid "File format not allowed"
 msgstr "Недопустимый формат"
 
-#: mboard/views.py:85
+#: mboard/views.py:84
 msgid "Posting error"
 msgstr "Ошибка постинга"
 
 #: templates/OPpost.html:10
+msgctxt "into thread"
 msgid "Reply"
 msgstr "В тред"
 
 #: templates/info_page.html:5
 msgid "Posts today:"
-msgstr "Постов сегодня"
+msgstr "Постов сегодня: "
 
 #: templates/info_page.html:6
 msgid "Threads total: "
-msgstr "Всего тредов"
+msgstr "Всего тредов: "
 
 #: templates/info_page.html:7
 msgid "Posts total: "
-msgstr "Всего постов"
+msgstr "Всего постов: "
 
 #: templates/info_page.html:8
 msgid "Boards total: "
-msgstr "Всего досок"
+msgstr "Всего досок: "
 
 #: templates/info_page.html:9
 msgid "Last post: "
-msgstr "Последний пост"
+msgstr "Последний пост: "
 
 #: templates/info_page.html:10
 msgid "First post: "
-msgstr "Первый пост"
+msgstr "Первый пост: "
 
 #: templates/list_threads.html:5
 msgid "New thread"
@@ -87,10 +88,10 @@ msgstr "Новый тред"
 
 #: templates/list_threads.html:15
 msgid "Posts in the thread:"
-msgstr "Всего постов"
+msgstr "Всего постов:"
 
 #: templates/post_error.html:8 templates/postform.html:8
-#: templates/quickpostform.html:12 templates/thread.html:23
+#: templates/quickpostform.html:12
 msgid "Send"
 msgstr "Отправить"
 
@@ -122,6 +123,10 @@ msgstr "Обновить"
 msgid "No new posts"
 msgstr "Нет новых постов"
 
-#: templates/header.html:9
+#: templates/thread.html:23
+msgid "Reply"
+msgstr "Ответить"
+
+#: templates/header.html:10
 msgid "Random"
 msgstr "Бред"

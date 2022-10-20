@@ -8,7 +8,7 @@ from captcha.conf import settings
 class CreateThread(TestCase):
     def setUp(self):
         self.c = Client()
-        Board.objects.create(board_name='test', board_link='t')
+        Board.objects.create(board_title='test', board_link='t')
         self.thread = Post.objects.create(board_id=Board.objects.get(board_link='t').pk)
         settings.CAPTCHA_TEST_MODE = True
         self.data = {'text': 'what did he mean by this?',
