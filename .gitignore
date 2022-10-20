@@ -1,0 +1,27 @@
+# Python
+*.pyc
+*.pyo
+
+# Apple
+.DS_Store
+
+
+*.autosave
+*.stats
+.*project
+local.properties
+*.bak
+*~
+/*.log
+/.coverage
+**.idea/
+\#*\#
+\.\#
+
+
+#venv
+venv/
+
+db.sqlite*
+media
+__pycache__
