@@ -13,7 +13,6 @@ class Post(models.Model):
     video_thumb = models.ImageField(upload_to='post/videos/thumbs', blank=True)
     bump = models.DateTimeField(auto_now=True)
     board = models.ForeignKey('Board', on_delete=models.CASCADE, null=False, blank=False)
-    vote = models.IntegerField(default=0)
     session = models.ForeignKey(Session, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):

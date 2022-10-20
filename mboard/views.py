@@ -2,6 +2,8 @@ from email.utils import parsedate_to_datetime
 from random import randint
 from django.conf import settings
 from captcha.models import CaptchaStore
+from django.contrib.sessions.backends.db import SessionStore
+from django.db.models import Value, Subquery, OuterRef
 from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
@@ -16,10 +18,9 @@ from django.views.decorators.cache import cache_page, never_cache
 from trust.pagerank import PersonalizedPageRank
 import networkx as nx
 from django.contrib.sessions.models import Session
-# import matplotlib.pyplot as plt
 
 
-def testfunc(request):
+def refresh_rank(request):
     if not request.session.session_key:
         request.session.create()
     user = Session.objects.get(session_key=request.session.session_key)
@@ -27,21 +28,22 @@ def testfunc(request):
     if created is True or obj.rank_calc_time < timezone.now():  # session was just created or expired
         G = nx.DiGraph()
         for node in Rating.objects.all():
+            print (node.user, node.target)
             G.add_edge(node.user, node.target, weight=node.vote)
         rep = calc_rep(G, user)
         for target, rank in rep.items():
-            print(user, target, rank)
+            # print(user, target, rank)
             Rating.objects.update_or_create(user=user,
                                             target=target,
                                             defaults={'rank': rank})
-    else:
-        for i in Rating.objects.filter(user=user).order_by('-rank'):  # up to date session, sort results by rank
-            print(i, i.rank)
+    for i in Rating.objects.filter(user=user).order_by('-rank'):  # up to date session, sort results by rank
+        print(i, i.rank)
 
 
 def calc_rep(graph, seed_node):
-    ppr = PersonalizedPageRank(graph, seed_node, reset_probability=0.0)
+    ppr = PersonalizedPageRank(graph, seed_node)
     reputation = {}
+    print (graph.edges)
     for n in graph.nodes():
         if n != seed_node:
             reputation[n] = ppr.compute(seed_node, n)
@@ -51,16 +53,6 @@ def calc_rep(graph, seed_node):
 # def vote(voter, author, amount=1):
 #     weight = G.get_edge_data(voter, author, default={'weight': 0})['weight'] + amount
 #     G.add_edge(voter, author, weight=weight)
-
-
-# def vis_graph(g):
-#     # Visualize the graph, for clarity
-#     pos = nx.spring_layout(g)
-#     nx.draw_networkx(g, pos, font_size=7)
-#     labels = nx.get_edge_attributes(g, 'weight')
-#     nx.draw_networkx_edge_labels(g, pos, edge_labels=labels)
-#
-#     plt.savefig("filename.png")
 
 
 @never_cache  # adds headers to response to disable browser cache
@@ -76,20 +68,35 @@ def list_threads(request, board, pagenum=1):
             new_thread.save()
             return redirect(reverse('mboard:get_thread', kwargs={'thread_id': new_thread.id, 'board': board}))
         return render(request, 'post_error.html', {'form': form, 'board': board})
-    testfunc(request)
+    refresh_rank(request)
     form = ThreadPostForm()
-    threads = board.post_set.all().filter(thread__isnull=True).order_by('-bump')
+    user = Session.objects.get(session_key=request.session.session_key)
+    threads = board.post_set.all().filter(thread__isnull=True).annotate(
+        rank=Subquery(
+            Rating.objects.filter(
+                user=user,
+                target=OuterRef('session')
+            ).values('rank')
+        )
+    ).order_by('-rank')
     threads_dict, posts_ids = {}, {}
     paginator = Paginator(threads, 10)
     try:
         threads = paginator.page(number=pagenum)
     except InvalidPage:
         return redirect(reverse('mboard:list_threads', kwargs={'board': board}))
+
     for thread in threads:
         posts_to_display = thread.post_set.all().order_by('-date')[:4]
         threads_dict[thread] = reversed(posts_to_display)
         posts_ids[thread.pk] = thread.posts_ids()
-    context = {'threads': threads_dict, 'form': form, 'paginator': paginator, 'page_obj': threads, 'board': board,
+        # threads_rank_dict[thread.pk] = Rating.objects.get(user=user, target=thread.session)
+
+    context = {'threads': threads_dict,
+               'form': form,
+               'paginator': paginator,
+               'page_obj': threads,
+               'board': board,
                'posts_ids': posts_ids}
     return render(request, 'list_threads.html', context)
 
@@ -199,9 +206,12 @@ def info_page(request):
 
 def post_vote(request):
     vote = request.GET['vote']
-    post = Post.objects.get(pk=int(request.GET['post']))
-    if vote and post:
-        post.vote += 1 if int(vote) == 1 else -1
-        post.save()
-        return JsonResponse({'vote': post.vote})
+    target = Post.objects.get(pk=int(request.GET['post'])).session
+    user = Session.objects.get(session_key=request.session.session_key)
+    assert target != user
+    rating, _ = Rating.objects.get_or_create(user=user, target=target)
+    if vote and target and rating:
+        rating.vote += 1 if int(vote) == 1 else -1
+        rating.save()
+        return JsonResponse({'vote': rating.vote})
     return HttpResponse(status=400)
