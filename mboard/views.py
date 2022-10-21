@@ -2,9 +2,9 @@ from email.utils import parsedate_to_datetime
 from random import randint
 from django.conf import settings
 from captcha.models import CaptchaStore
-from django.db.models import Value, Subquery, OuterRef
+from django.db.models import Subquery, OuterRef
 from django.shortcuts import render, redirect, reverse, get_object_or_404
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.core.paginator import Paginator, InvalidPage
 from django.views.decorators.http import last_modified
@@ -52,25 +52,26 @@ def calc_rep(graph, seed_node):
     return reputation
 
 
-def annotate_rating(user, threads=None, thread=None):
-    if thread:  # add rank/vote fields to a single thread (for OP post on a thread page)
-        thread.rank = Rating.objects.get(user=user, target=thread.session).rank
-        thread.vote = Rating.objects.get(user=user, target=thread.session).vote
-        return thread
-    else:
-        return threads.annotate(
-            rank=Subquery(
-                Rating.objects.filter(
-                    user=user,
-                    target=OuterRef('session')
-                ).values('rank')
-            ),
-            vote=Subquery(
-                Rating.objects.filter(
-                    user=user,
-                    target=OuterRef('session')
-                ).values('vote'))
-        ).order_by('-rank')
+def single_annotate(user, thread):  # add rank/vote fields to a single thread (for OP post on a thread page)
+    thread.rank = Rating.objects.get(user=user, target=thread.session).rank
+    thread.vote = Rating.objects.get(user=user, target=thread.session).vote
+    return thread
+
+
+def multi_annotate(user, threads):
+    return threads.annotate(
+        rank=Subquery(
+            Rating.objects.filter(
+                user=user,
+                target=OuterRef('session')
+            ).values('rank')
+        ),
+        vote=Subquery(
+            Rating.objects.filter(
+                user=user,
+                target=OuterRef('session')
+            ).values('vote'))
+    ).order_by('-rank')
 
 
 @never_cache  # adds headers to response to disable browser cache
@@ -90,7 +91,7 @@ def list_threads(request, board, pagenum=1):
     user = refresh_rank(request)
 
     threads = board.post_set.all().filter(thread__isnull=True)
-    threads = annotate_rating(user, threads)
+    threads = multi_annotate(user, threads)
 
     threads_dict, posts_ids = {}, {}
     paginator = Paginator(threads, 10)
@@ -100,7 +101,7 @@ def list_threads(request, board, pagenum=1):
         return redirect(reverse('mboard:list_threads', kwargs={'board': board}))
 
     for thread in threads:
-        posts_to_display = annotate_rating(user=user, threads=thread.post_set.all())[:4]  # .order_by('-date')
+        posts_to_display = multi_annotate(user=user, threads=thread.post_set.all())[:4]  # .order_by('-date')
         threads_dict[thread] = reversed(posts_to_display)
         posts_ids[thread.pk] = thread.posts_ids()
         # threads_rank_dict[thread.pk] = Rating.objects.get(user=user, target=thread.session)
@@ -133,8 +134,8 @@ def get_thread(request, thread_id, board):
     board = get_object_or_404(Board, board_link=board)
     thread = get_object_or_404(Post, pk=thread_id)
     user = refresh_rank(request)
-    thread = annotate_rating(user=user, thread=thread)
-    posts = annotate_rating(user, thread.post_set.all())
+    thread = single_annotate(user=user, thread=thread)
+    posts = multi_annotate(user, thread.post_set.all())
 
     form = PostForm(initial={'thread_id': thread_id})
     context = {'thread': thread,
