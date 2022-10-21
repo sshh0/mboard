@@ -7,13 +7,15 @@
       <span class="date" data-unixtime="{{ thread.date|date:"U" }}">{{ thread.date|date:'d/m/Y, H:i:s' }}</span>
       №:<a class="postLink" href="#id{{ thread.pk }}">{{ thread.pk }}</a>
     </span>
-    <a class="threadlink" href="{{ thread.get_absolute_url }}">{% translate 'Reply' context 'into thread' %}</a>
     <div id="voting" style="display: inline-block">
-      <span id="rank" style="color: green">"Rank:"{{ thread.rank}}</span>
-      <button id="downvote" type="button" onclick="vote(this, 0)">-</button>
-      <button id="upvote" type="button" onclick="vote(this, 1)">+</button>
-      <span id="vote" style="color: red">{{ thread.vote }}</span>
+      {% if request.session.session_key != thread.session.session_key %}
+        <span id="rank" style="color: green">Rank: {{ thread.rank }}</span>
+        <button id="downvote" type="button" onclick="vote(this, 0)">-</button>
+        <button id="upvote" type="button" onclick="vote(this, 1)">+</button>
+        <span id="vote" style="color: red">{{ thread.vote }}</span>
+      {% endif %}
     </div>
+    <a class="threadlink" href="{{ thread.get_absolute_url }}">{% translate 'Reply' context 'into thread' %}</a>
   </div>
   {% if thread.video_thumb %}
     <div class="video-link">
