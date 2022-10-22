@@ -26,7 +26,7 @@ def refresh_rank(request):
         request.session.create()
     user = Session.objects.get(session_key=request.session.session_key)
     obj, created = CalcTime.objects.get_or_create(user=user, defaults={'user': user})
-    if created or obj.rank_calc_time < timezone.now() - timedelta(seconds=5):  # session was just created or expired
+    if created or obj.rank_calc_time < timezone.now() - timedelta(hours=1) or settings.RECALCULATE:
         G = nx.DiGraph()
         for node in Rating.objects.all():
             # print(node.user, node.target)
@@ -53,8 +53,9 @@ def calc_rep(graph, seed_node):
 
 
 def single_annotate(user, thread):  # add rank/vote fields to a single thread (for OP post on a thread page)
-    thread.rank = Rating.objects.get(user=user, target=thread.session).rank
-    thread.vote = Rating.objects.get(user=user, target=thread.session).vote
+    if user != thread.session:
+        thread.rank = Rating.objects.get(user=user, target=thread.session).rank
+        thread.vote = Rating.objects.get(user=user, target=thread.session).vote
     return thread
 
 
