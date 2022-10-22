@@ -57,3 +57,6 @@ class Rating(models.Model):
 class CalcTime(models.Model):
     user = models.OneToOneField(Session, on_delete=models.CASCADE)
     rank_calc_time = models.DateTimeField(null=True, blank=True, auto_now_add=True)
+
+    def __str__(self):
+        return str(self.user)

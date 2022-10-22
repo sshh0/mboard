@@ -2,10 +2,9 @@ from email.utils import parsedate_to_datetime
 from random import randint
 from django.conf import settings
 from captcha.models import CaptchaStore
-from django.contrib.sessions.backends.db import SessionStore
-from django.db.models import Value, Subquery, OuterRef
+from django.db.models import Subquery, OuterRef
 from django.shortcuts import render, redirect, reverse, get_object_or_404
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.core.paginator import Paginator, InvalidPage
 from django.views.decorators.http import last_modified
@@ -15,20 +14,22 @@ from datetime import timedelta
 from mboard.models import Post, Board, Rating, CalcTime
 from .forms import PostForm, ThreadPostForm
 from django.views.decorators.cache import cache_page, never_cache
-from trust.pagerank import PersonalizedPageRank
+from libs.meritrank.trust.pagerank import PersonalizedPageRank
 import networkx as nx
 from django.contrib.sessions.models import Session
 
 
 def refresh_rank(request):
-    if not request.session.session_key:
+    try:
+        Session.objects.get(session_key=request.session.session_key)
+    except Session.DoesNotExist:  # new session or user has key not present in db
         request.session.create()
     user = Session.objects.get(session_key=request.session.session_key)
     obj, created = CalcTime.objects.get_or_create(user=user, defaults={'user': user})
-    if created is True or obj.rank_calc_time < timezone.now():  # session was just created or expired
+    if created or obj.rank_calc_time < timezone.now() - timedelta(seconds=5):  # session was just created or expired
         G = nx.DiGraph()
         for node in Rating.objects.all():
-            print (node.user, node.target)
+            # print(node.user, node.target)
             G.add_edge(node.user, node.target, weight=node.vote)
         rep = calc_rep(G, user)
         for target, rank in rep.items():
@@ -36,23 +37,41 @@ def refresh_rank(request):
             Rating.objects.update_or_create(user=user,
                                             target=target,
                                             defaults={'rank': rank})
-    for i in Rating.objects.filter(user=user).order_by('-rank'):  # up to date session, sort results by rank
-        print(i, i.rank)
+        CalcTime.objects.filter(user=user).update(rank_calc_time=timezone.now())
+
+    return user
 
 
 def calc_rep(graph, seed_node):
     ppr = PersonalizedPageRank(graph, seed_node)
     reputation = {}
-    print (graph.edges)
+    # print(graph.edges)
     for n in graph.nodes():
         if n != seed_node:
             reputation[n] = ppr.compute(seed_node, n)
     return reputation
 
 
-# def vote(voter, author, amount=1):
-#     weight = G.get_edge_data(voter, author, default={'weight': 0})['weight'] + amount
-#     G.add_edge(voter, author, weight=weight)
+def single_annotate(user, thread):  # add rank/vote fields to a single thread (for OP post on a thread page)
+    thread.rank = Rating.objects.get(user=user, target=thread.session).rank
+    thread.vote = Rating.objects.get(user=user, target=thread.session).vote
+    return thread
+
+
+def multi_annotate(user, threads):
+    return threads.annotate(
+        rank=Subquery(
+            Rating.objects.filter(
+                user=user,
+                target=OuterRef('session')
+            ).values('rank')
+        ),
+        vote=Subquery(
+            Rating.objects.filter(
+                user=user,
+                target=OuterRef('session')
+            ).values('vote'))
+    ).order_by('-rank')
 
 
 @never_cache  # adds headers to response to disable browser cache
@@ -68,17 +87,12 @@ def list_threads(request, board, pagenum=1):
             new_thread.save()
             return redirect(reverse('mboard:get_thread', kwargs={'thread_id': new_thread.id, 'board': board}))
         return render(request, 'post_error.html', {'form': form, 'board': board})
-    refresh_rank(request)
     form = ThreadPostForm()
-    user = Session.objects.get(session_key=request.session.session_key)
-    threads = board.post_set.all().filter(thread__isnull=True).annotate(
-        rank=Subquery(
-            Rating.objects.filter(
-                user=user,
-                target=OuterRef('session')
-            ).values('rank')
-        )
-    ).order_by('-rank')
+    user = refresh_rank(request)
+
+    threads = board.post_set.all().filter(thread__isnull=True)
+    threads = multi_annotate(user, threads)
+
     threads_dict, posts_ids = {}, {}
     paginator = Paginator(threads, 10)
     try:
@@ -87,7 +101,7 @@ def list_threads(request, board, pagenum=1):
         return redirect(reverse('mboard:list_threads', kwargs={'board': board}))
 
     for thread in threads:
-        posts_to_display = thread.post_set.all().order_by('-date')[:4]
+        posts_to_display = multi_annotate(user=user, threads=thread.post_set.all())[:4]  # .order_by('-date')
         threads_dict[thread] = reversed(posts_to_display)
         posts_ids[thread.pk] = thread.posts_ids()
         # threads_rank_dict[thread.pk] = Rating.objects.get(user=user, target=thread.session)
@@ -119,10 +133,16 @@ def get_thread(request, thread_id, board):
         return render(request, 'post_error.html', {'form': form, 'board': board})
     board = get_object_or_404(Board, board_link=board)
     thread = get_object_or_404(Post, pk=thread_id)
-    if not request.session.session_key:
-        request.session.create()
+    user = refresh_rank(request)
+    thread = single_annotate(user=user, thread=thread)
+    posts = multi_annotate(user, thread.post_set.all())
+
     form = PostForm(initial={'thread_id': thread_id})
-    context = {'thread': thread, 'posts_ids': {thread.pk: thread.posts_ids()}, 'form': form, 'board': board}
+    context = {'thread': thread,
+               'posts_ids': {thread.pk: thread.posts_ids()},
+               'form': form,
+               'board': board,
+               'posts': posts}
     return render(request, 'thread.html', context)
 
 
@@ -208,10 +228,11 @@ def post_vote(request):
     vote = request.GET['vote']
     target = Post.objects.get(pk=int(request.GET['post'])).session
     user = Session.objects.get(session_key=request.session.session_key)
-    assert target != user
-    rating, _ = Rating.objects.get_or_create(user=user, target=target)
-    if vote and target and rating:
-        rating.vote += 1 if int(vote) == 1 else -1
-        rating.save()
-        return JsonResponse({'vote': rating.vote})
-    return HttpResponse(status=400)
+    # assert target != user
+    if target != user:
+        rating, _ = Rating.objects.get_or_create(user=user, target=target)
+        if vote and target and rating:
+            rating.vote += 1 if int(vote) == 1 else -1
+            rating.save()
+            return JsonResponse({'vote': rating.vote})
+    return JsonResponse({'vote': 'Not allowed'})

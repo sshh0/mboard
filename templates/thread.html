@@ -9,7 +9,7 @@
     <hr>
     <section class="thread" data-threadid="{{ thread.pk }}">
       {% include 'OPpost.html' %}
-      {% for post in thread.post_set.all %}
+      {% for post in posts %}
         {% include 'post.html' %}
       {% endfor %}
     </section>
