@@ -1,5 +1,6 @@
 {% load static %}
 {% load i18n %}
+{% load extra %}
 <form hidden id="quickPostForm" action="" method="post"
       enctype="multipart/form-data">
   <img loading="lazy" id='closebutton' alt="Close" style="float: left" src="{% static 'closebutton.svg' %}">
@@ -7,8 +8,8 @@
     <span>{% translate 'Reply to the thread' %}</span>
     <span id="num"></span>
   </div>
-  <div style="display: flex;">
-    {{ form.poster }}
+  <div style="border: 1px solid gray">
+    <span>{{ request.session.session_key|gen_name_from_cookie }}</span>
     <button class='post-frm-btn' type="submit">{% translate 'Send' %}</button>
   </div>
   {{ form.text }}

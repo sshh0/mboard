@@ -5,8 +5,19 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from mboard.models import Post
 from precise_bbcode.bbcode import get_parser
-
+from faker import Faker
 register = template.Library()
+
+
+@register.filter()
+def gen_name_from_cookie(cookie_id):
+    """
+    as we keep updating datasets, results are not guaranteed to be consistent across patch versions
+    (from faker README)
+    """
+    name = Faker('ru_RU')  # can take a locale argument to return localised data
+    name.seed_instance(cookie_id)
+    return name.name()
 
 
 @register.simple_tag()
