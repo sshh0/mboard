@@ -1,3 +1,4 @@
+import random
 from email.utils import parsedate_to_datetime
 from random import randint
 from django.conf import settings
@@ -178,7 +179,10 @@ def ajax_tooltips_onhover(request, thread_id, **kwargs):
         thread = Post.objects.get(pk=thread_id)
         post_ids = {thread.pk: thread.posts_ids()}
         jsn = render_to_string('post.html',
-                               {'post': post, 'thread': thread, 'posts_ids': post_ids}, request)
+                               {'post': post,
+                                'thread': thread,
+                                'posts_ids': post_ids},
+                               request)
         return JsonResponse(jsn, safe=False)
 
 
@@ -186,6 +190,20 @@ def ajax_tooltips_onhover(request, thread_id, **kwargs):
 def ajax_load_new_posts(request, thread_id, **kwargs):  # don't proceed if no new posts, return 304 response
     thread = Post.objects.get(pk=thread_id)
     return get_new_posts(request, thread)
+
+
+def ajax_discover_new_threads(request, board, **kwargs):  # don't proceed if no new posts, return 304 response
+    board = get_object_or_404(Board, board_link=board)
+    user = refresh_rank(request)
+    stranded_threads = multi_annotate(user, board.post_set.all().filter(thread__isnull=True)).filter(rank=0.0)
+    thread = random.choice(stranded_threads)
+    post_ids = {thread.pk: thread.posts_ids()}
+    jsn = render_to_string('OPpost.html',
+                           {'post': thread,
+                            'thread': thread,
+                            'posts_ids': post_ids},
+                           request)
+    return JsonResponse(jsn, safe=False)
 
 
 def get_new_posts(request, thread):

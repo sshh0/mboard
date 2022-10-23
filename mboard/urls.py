@@ -3,7 +3,7 @@ from django.conf.urls.static import static
 from django.urls import path
 from django.shortcuts import redirect
 from mboard.views import list_threads, get_thread, ajax_tooltips_onhover, ajax_load_new_posts, \
-    captcha_ajax_validation, ajax_posting, info_page, post_vote
+    captcha_ajax_validation, ajax_posting, info_page, post_vote, ajax_discover_new_threads
 
 app_name = 'mboard'
 
@@ -14,6 +14,7 @@ urlpatterns = [
     path('posting/', ajax_posting),
     path('', lambda request: redirect('mboard:list_threads', board='b')),
     path('<str:board>/', list_threads, name='list_threads'),
+    path('<str:board>/discover_new_threads.json', ajax_discover_new_threads),
     path('<str:board>/<int:pagenum>/', list_threads, name='threads_paginator'),
     path('<str:board>/thread/<int:thread_id>/', get_thread, name='get_thread'),
     path('<str:board>/thread/<int:thread_id>/<int:post_id>.json', ajax_tooltips_onhover),
