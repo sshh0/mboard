@@ -12,7 +12,6 @@ class CreateThread(TestCase):
         self.thread = Post.objects.create(board_id=Board.objects.get(board_link='t').pk)
         settings.CAPTCHA_TEST_MODE = True
         self.data = {'text': 'what did he mean by this?',
-                     'poster': 'literally who?',
                      'captcha_0': 'passed',
                      'captcha_1': 'passed'}
         self.files = ['mboard/tests/testwebm.webm', 'mboard/tests/testimage.jpg']

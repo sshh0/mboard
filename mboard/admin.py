@@ -4,7 +4,7 @@ from django.contrib.sessions.models import Session
 
 
 class PostAdmin(admin.ModelAdmin):
-    list_display = ['id', 'bump', 'date', 'poster', 'thread', 'board', 'post_shortened', 'video', 'session']
+    list_display = ['id', 'bump', 'date', 'thread', 'board', 'post_shortened', 'video', 'session']
 
     def post_shortened(self, obj):
         return obj.text[:20]

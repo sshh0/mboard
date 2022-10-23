@@ -3,9 +3,9 @@
 <article class="opPost" id="id{{ thread.pk }}" data-id="{{ thread.pk }}">
   <div class="opPostHeader">
     <span>
-      <span class="poster"> {{ thread.poster }}</span>
+      <span class="poster">{{ thread.session.session_key|gen_name_from_cookie }}</span>
       <span class="date" data-unixtime="{{ thread.date|date:"U" }}">{{ thread.date|date:'d/m/Y, H:i:s' }}</span>
-      №:<a class="postLink" href="#id{{ thread.pk }}">{{ thread.pk }}</a>
+      <a class="postLink" href="#id{{ thread.pk }}">№:{{ thread.pk }}</a>
     </span>
     <div id="voting" style="display: inline-block">
       {% if request.session.session_key != thread.session.session_key %}

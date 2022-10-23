@@ -13,14 +13,12 @@ from django.utils.translation import gettext_lazy as _
 class PostForm(forms.ModelForm):  # fields defined declaratively do not draw their
     file = forms.FileField(required=False)  # attributes like max_length or required from the corresponding model
     text = forms.CharField(required=False, max_length=8000, widget=forms.Textarea())
-    poster = forms.CharField(required=False, max_length=35,
-                             empty_value=_('Anon'), widget=forms.TextInput(attrs={'placeholder': _('Anon')}))
     thread_id = forms.IntegerField(required=False)
     captcha = CaptchaField(error_messages={'invalid': _('Invalid captcha')})
 
     class Meta:
         model = Post
-        fields = ['poster', 'text', 'thread_id']
+        fields = ['text', 'thread_id']
 
     def clean(self):
         # "By the time the form’s clean() method is called, all the individual field clean methods will have been run"

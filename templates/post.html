@@ -1,8 +1,9 @@
 {% load extra %}
 <article data-id="{{ post.pk }}" id="id{{ post.pk }}" class="post">
-  <div class="postHeader">{{ post.poster }}
+  <div class="postHeader">
+    <span class="poster">{{ post.session.session_key|gen_name_from_cookie }}</span>
     <span class="date" data-unixtime="{{ post.date|date:"U" }}">{{ post.date|date:'d/m/Y, H:i:s' }}</span>
-    №:<a class="postLink" href="{{ thread.get_absolute_url }}#id{{ post.pk }}">{{ post.pk }}</a>
+    <a class="postLink" href="{{ thread.get_absolute_url }}#id{{ post.pk }}">№:{{ post.pk }}</a>
     <div id="voting" style="display: inline-block">
       {% if request.session.session_key != post.session.session_key %}
         <span id="rank" style="color: green">Rank: {{ post.rank|default_if_none:0.0 }}</span>

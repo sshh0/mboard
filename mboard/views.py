@@ -106,8 +106,7 @@ def list_threads(request, board, pagenum=1):
         return redirect(reverse('mboard:list_threads', kwargs={'board': board}))
 
     for thread in threads:
-        posts_to_display = multi_annotate(user=user, threads=thread.post_set.all())[:4]  # .order_by('-date')
-        threads_dict[thread] = reversed(posts_to_display)
+        threads_dict[thread] = multi_annotate(user=user, threads=thread.post_set.all())[:4]
         posts_ids[thread.pk] = thread.posts_ids()
         # threads_rank_dict[thread.pk] = Rating.objects.get(user=user, target=thread.session)
 
