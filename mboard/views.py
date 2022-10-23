@@ -73,7 +73,7 @@ def multi_annotate(user, threads):
                 user=user,
                 target=OuterRef('session')
             ).values('vote'))
-    ).order_by('-rank')
+    )
 
 
 def create_new_thread(request, board, ):
@@ -97,7 +97,7 @@ def list_threads(request, board, pagenum=1):
     user = refresh_rank(request)
 
     threads = board.post_set.all().filter(thread__isnull=True)
-    threads = multi_annotate(user, threads)
+    threads = multi_annotate(user, threads).exclude(rank=0.0).order_by('-rank')
 
     threads_dict, posts_ids = {}, {}
     paginator = Paginator(threads, 10)
