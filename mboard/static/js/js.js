@@ -57,7 +57,7 @@ if ($('.threadList,.threadPage')) { // at least one class ("OR")
     $$('.video-thumb').forEach((video) => video.addEventListener('click', expandVideo));
     $('.js-fetch-new-posts')?.addEventListener('click', fetchNewPosts);
 
-    discoverBtn.addEventListener('click', discoverNewThreads)
+document.getElementById('discoverBtn').addEventListener('click', discoverNewThreads)
     $$('.quote, .reply').forEach((elmnt) => elmnt.addEventListener('click', onClick));
     document.addEventListener('mouseover', function (ev) {
         if (ev.target.classList.contains('quote') || ev.target.classList.contains('reply')) {
@@ -370,7 +370,6 @@ function constructReplyElmnt(quote) {
 
 
 function discoverNewThreads() {
-    const lastLoadedPost = $$('article')[$$('article').length - 1];
     let pathname = window.location.pathname;
     pathname = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
     const urlparams = pathname +'/discover_new_threads.json';
@@ -379,11 +378,9 @@ function discoverNewThreads() {
         method: "GET",
         headers: {
             "X-Requested-With": "XMLHttpRequest",
-            "If-Modified-Since": getLastPostDate(lastLoadedPost),
         },
     })
         .then(response => {
-            const fetchStatus = document.getElementById('fetchStatus');
             if (response.status === 200) {
                 response.json().then(data => {
                 console.log(data);
