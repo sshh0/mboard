@@ -56,6 +56,8 @@ if ($('.threadList,.threadPage')) { // at least one class ("OR")
     $$('.image').forEach((image) => image.addEventListener('click', expandImage));
     $$('.video-thumb').forEach((video) => video.addEventListener('click', expandVideo));
     $('.js-fetch-new-posts')?.addEventListener('click', fetchNewPosts);
+
+document.getElementById('discoverBtn').addEventListener('click', discoverNewThreads)
     $$('.quote, .reply').forEach((elmnt) => elmnt.addEventListener('click', onClick));
     document.addEventListener('mouseover', function (ev) {
         if (ev.target.classList.contains('quote') || ev.target.classList.contains('reply')) {
@@ -366,6 +368,41 @@ function constructReplyElmnt(quote) {
     }
 }
 
+
+function discoverNewThreads() {
+    let pathname = window.location.pathname;
+    pathname = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+    const urlparams = pathname +'/discover_new_threads.json';
+
+    fetch('' + urlparams, {
+        method: "GET",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+        },
+    })
+        .then(response => {
+            if (response.status === 200) {
+                response.json().then(data => {
+                console.log(data);
+                discoverBox.innerHTML = data; });
+            }
+            if (response.status === 304) {
+                fetchStatus.hidden = false;
+                setTimeout(function () {
+                    fetchStatus.hidden = true;
+                }, 10000); // 10 sec
+            }
+        });
+
+}
+
+function getLastPostDate(lastLoadedPost) {
+    const timestamp = lastLoadedPost.querySelector('.date').dataset.unixtime;
+    const lastPostDate = new Date(timestamp * 1000);  //milliseconds to seconds
+    lastPostDate.setSeconds(lastPostDate.getSeconds() + 1);
+    return lastPostDate.toUTCString();
+}
+
 function fetchNewPosts() {
     const lastLoadedPost = $$('article')[$$('article').length - 1];
     let pathname = window.location.pathname;
@@ -376,7 +413,7 @@ function fetchNewPosts() {
         method: "GET",
         headers: {
             "X-Requested-With": "XMLHttpRequest",
-            "If-Modified-Since": getLastPostDate(),
+            "If-Modified-Since": getLastPostDate(lastLoadedPost),
         },
     })
         .then(response => {
@@ -392,12 +429,6 @@ function fetchNewPosts() {
             }
         });
 
-    function getLastPostDate() {
-        const timestamp = lastLoadedPost.querySelector('.date').dataset.unixtime;
-        const lastPostDate = new Date(timestamp * 1000);  //milliseconds to seconds
-        lastPostDate.setSeconds(lastPostDate.getSeconds() + 1);
-        return lastPostDate.toUTCString();
-    }
 }
 
 function insert(newPosts) {
