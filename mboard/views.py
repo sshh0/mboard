@@ -64,6 +64,15 @@ def refresh_rank(request):
     # Add User -> Post edges (just read from Rating table)
     # Note this can overwrite default author vote if the author voted for his post.
     for node in Rating.objects.all():
+        # Do not overwrite edges added by the "add default author edges" procedure above,
+        # in case the corresponding DB rank row was added automatically by recalculation procedure earlier.
+        # If we do overwrite it with data from the DB, which could be vote=0.0,
+        # the result will be zero OPpost ratings.
+        # This is an ugly workaround that stems from the "user-target" Rating table keys design.
+        if G.get_edge_data(node.user, node.target, default={}).get(
+                'weight') == MINIMAL_AUTHOR_VOTE and node.vote == 0.0:
+            continue
+
         G.add_edge(node.user, node.target,
                    weight=node.vote if node.vote >= 0.0 else node.vote * NEGATIVE_VOTE_AMPLIFICATION_COEFFICIENT)
 
@@ -154,6 +163,7 @@ def list_threads(request, board, pagenum=1):
     context = {'threads': threads_dict,
                'form': form,
                'paginator': paginator,
+               'rank_debug': settings.RANK_DEBUG,
                'page_obj': threads,
                'board': board,
                'posts_ids': posts_ids}
