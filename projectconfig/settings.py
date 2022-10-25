@@ -15,7 +15,7 @@ APPEND_SLASH = True
 
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 365 * 10  # ~ 10 years
 
-RECALCULATE = False
+RANK_DEBUG = False
 
 CAPTCHA_FONT_SIZE = 27
 CAPTCHA_LETTER_ROTATION = None
@@ -29,7 +29,7 @@ else:
 
 BBCODE_DISABLE_BUILTIN_TAGS = True
 BBCODE_ALLOW_SMILIES = False
-BBCODE_ESCAPE_HTML = []  # disable bbcode's esacaping
+BBCODE_ESCAPE_HTML = []  # disable bbcode's escaping
 BBCODE_ALLOW_CUSTOM_TAGS = True
 INSTALLED_APPS = [
     'django.contrib.admin',

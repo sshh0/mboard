@@ -6,7 +6,9 @@
     <a class="postLink" href="{{ thread.get_absolute_url }}#id{{ post.pk }}">№:{{ post.pk }}</a>
     <div id="voting" style="display: inline-block">
       {% if request.session.session_key != post.session.session_key %}
-        <span id="rank" style="color: green">Rank: {{ post.rank|default_if_none:0.0 }}</span>
+        {% if post.vote != 0.0 or rank_debug %}
+          <span id="rank" style="color: green">Rank: {{ post.rank|floatformat:3 }}</span>
+        {% endif %}
         <button id="downvote" type="button" onclick="vote(this, 0)">-</button>
         <button id="upvote" type="button" onclick="vote(this, 1)">+</button>
         <span id="vote" style="color: red">{{ post.vote }}</span>

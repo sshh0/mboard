@@ -14,10 +14,9 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from datetime import timedelta
 from mboard.models import Post, Board, Rating, CalcTime
-from trust import PersonalizedHittingTime, BL_PHT
+from trust import BL_PHT
 from .forms import PostForm, ThreadPostForm
 from django.views.decorators.cache import cache_page, never_cache
-from libs.meritrank.trust.pagerank import PersonalizedPageRank
 import networkx as nx
 from django.contrib.sessions.models import Session
 
@@ -32,6 +31,14 @@ POST_TO_USER_VOTE = 77777
 # parameters for the algorithm which is up to discussion.
 MINIMAL_AUTHOR_VOTE = 1
 
+# This is how much more important negative votes are than positive ones
+# e.g. if it is 10, this means 1 negative vote is balanced out by 10 positive ones.
+NEGATIVE_VOTE_AMPLIFICATION_COEFFICIENT = 10
+
+# Posts from users with less than this rank will be hidden from view.
+# Setting this to 0.0 or higher will effectively hide all posts by stranded (new) users
+SHADOWBAN_THRESHOLD = -0.01
+
 
 def refresh_rank(request):
     try:
@@ -40,7 +47,8 @@ def refresh_rank(request):
         request.session.create()
     user = Session.objects.get(session_key=request.session.session_key)
     obj, created = CalcTime.objects.get_or_create(user=user, defaults={'user': user})
-    if not (created or obj.rank_calc_time < timezone.now() - timedelta(hours=1) or settings.RECALCULATE):
+    cache_expired = obj.rank_calc_time + timedelta(hours=1) > timezone.now()
+    if not cache_expired and not created and not settings.RANK_DEBUG:
         return user
 
     G = nx.DiGraph()
@@ -56,12 +64,13 @@ def refresh_rank(request):
     # Add User -> Post edges (just read from Rating table)
     # Note this can overwrite default author vote if the author voted for his post.
     for node in Rating.objects.all():
-        G.add_edge(node.user, node.target, weight=node.vote)
+        G.add_edge(node.user, node.target,
+                   weight=node.vote if node.vote >= 0.0 else node.vote * NEGATIVE_VOTE_AMPLIFICATION_COEFFICIENT)
 
     rep = calc_rep(G, user)
     for target, rank in rep.items():
         # print(user, target, rank)
-        if not(isinstance(user, Session) and isinstance(target, Post)):
+        if not (isinstance(user, Session) and isinstance(target, Post)):
             # We only save User->Post edges in DB
             continue
         Rating.objects.update_or_create(user=user,
@@ -137,7 +146,8 @@ def list_threads(request, board, pagenum=1):
         return redirect(reverse('mboard:list_threads', kwargs={'board': board}))
 
     for thread in threads:
-        threads_dict[thread] = multi_annotate(user=user, threads=thread.post_set.all())[:4]
+        threads_dict[thread] = multi_annotate(user=user, threads=thread.post_set.all()).exclude(
+            rank__lt=SHADOWBAN_THRESHOLD)[:4]
         posts_ids[thread.pk] = thread.posts_ids()
         # threads_rank_dict[thread.pk] = Rating.objects.get(user=user, target=thread.session)
 
@@ -174,13 +184,14 @@ def get_thread(request, thread_id, board):
     thread = get_object_or_404(Post, pk=thread_id)
     user = refresh_rank(request)
     thread = single_annotate(user=user, thread=thread)
-    posts = multi_annotate(user, thread.post_set.all())
+    posts = multi_annotate(user, thread.post_set.all()).exclude(rank__lt=SHADOWBAN_THRESHOLD)
 
     form = PostForm(initial={'thread_id': thread_id})
     context = {'thread': thread,
                'posts_ids': {thread.pk: thread.posts_ids()},
                'form': form,
                'board': board,
+               'rank_debug': settings.RANK_DEBUG,
                'posts': posts}
     return render(request, 'thread.html', context)
 
@@ -243,8 +254,13 @@ def get_new_posts(request, thread):
     html_rendered_string = ''
     if posts:
         for post in posts:
-            html_rendered_string += render_to_string(request=request, template_name='post.html',
-                                                     context={'post': post, 'thread': thread, 'posts_ids': posts_ids})
+            html_rendered_string += render_to_string(
+                request=request, template_name='post.html',
+                context={
+                    'post': post,
+                    'thread': thread,
+                    'show_unvoted_rank': settings.RANK_DEBUG,
+                    'posts_ids': posts_ids})
         return JsonResponse(html_rendered_string, safe=False)
 
 
