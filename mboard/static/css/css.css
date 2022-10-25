@@ -374,3 +374,30 @@ a:hover {
     color: white;
     font-size: 20px;
 }
+
+.thread-disc {
+    display: inline-block;
+    vertical-align: top;
+    margin: 30px;
+}
+
+.thred-disc .text {
+    max-width: 200px;
+}
+
+.thread-disc-text {
+    display: block;
+    clear: both;
+    max-width: 200px;
+    max-height: 300px;
+    overflow: hidden;
+    padding: 4%;
+    column-width: 300px
+}
+
+.thread-disc .image {
+}
+
+.thread-disc .postcount {
+    text-align: center;
+}

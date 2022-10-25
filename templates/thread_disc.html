@@ -1,0 +1,22 @@
+{% load extra %}
+{% load i18n %}
+<article class="thread-disc" id="id{{ thread.pk }}" data-id="{{ thread.pk }}">
+  <div class="postcount">Постов: {{ thread.post_set.all|length|add:1 }}</div>
+  {% if thread.video_thumb %}
+    <div class="video-div">
+      <a target="_blank" href="{{ thread.video.url }}">
+        <img loading="lazy" class="video-thumb" src="{{ thread.video_thumb.url }}" alt="">
+      </a>
+    </div>
+  {% endif %}
+  {% if thread.thumbnail %}
+    <div class="imagediv">
+      <a href="{{ thread.get_absolute_url }}">
+        <img class="image" src="{{ thread.thumbnail.url }}" alt="">
+      </a>
+    </div>
+  {% endif %}
+  <div class="thread-disc-text">{% customize_post_string thread.text thread.pk posts_ids thread.pk %}
+    <div class="replies"></div>
+  </div>
+</article>
