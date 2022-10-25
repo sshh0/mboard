@@ -4,6 +4,7 @@ from random import randint
 from django.conf import settings
 from captcha.models import CaptchaStore
 from django.db.models import Subquery, OuterRef
+from django.db.models.functions import Coalesce
 from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.http import JsonResponse
 from django.template.loader import render_to_string
@@ -13,11 +14,23 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from datetime import timedelta
 from mboard.models import Post, Board, Rating, CalcTime
+from trust import PersonalizedHittingTime, BL_PHT
 from .forms import PostForm, ThreadPostForm
 from django.views.decorators.cache import cache_page, never_cache
 from libs.meritrank.trust.pagerank import PersonalizedPageRank
 import networkx as nx
 from django.contrib.sessions.models import Session
+
+# The amount of vote a post gives to the edge into its creator.
+# If there is only a single outgoing edge (which is the case), the actual amount
+# doesn't matter. However, setting it to a specific value is useful for debugging
+POST_TO_USER_VOTE = 77777
+
+# The minimal amount of vote the author gives to its post when creating it.
+# Authors can change the vote for their post to promote it at the price of higher
+# risk of backlash and spending their popularity. This is one of the important tuning
+# parameters for the algorithm which is up to discussion.
+MINIMAL_AUTHOR_VOTE = 1
 
 
 def refresh_rank(request):
@@ -27,24 +40,39 @@ def refresh_rank(request):
         request.session.create()
     user = Session.objects.get(session_key=request.session.session_key)
     obj, created = CalcTime.objects.get_or_create(user=user, defaults={'user': user})
-    if created or obj.rank_calc_time < timezone.now() - timedelta(hours=1) or settings.RECALCULATE:
-        G = nx.DiGraph()
-        for node in Rating.objects.all():
-            # print(node.user, node.target)
-            G.add_edge(node.user, node.target, weight=node.vote)
-        rep = calc_rep(G, user)
-        for target, rank in rep.items():
-            # print(user, target, rank)
-            Rating.objects.update_or_create(user=user,
-                                            target=target,
-                                            defaults={'rank': rank})
-        CalcTime.objects.filter(user=user).update(rank_calc_time=timezone.now())
+    if not (created or obj.rank_calc_time < timezone.now() - timedelta(hours=1) or settings.RECALCULATE):
+        return user
 
+    G = nx.DiGraph()
+
+    # Add Post -> Author edges
+    # Every post gets a single outgoing edge: the edge into its creator.
+    # This means the post transitively sends all the votes/merit/credit to its creator.
+    for node in Post.objects.all():
+        G.add_edge(node, node.session, weight=POST_TO_USER_VOTE)
+        # Add Author -> Post edge of a minimum/default size.
+        G.add_edge(node.session, node, weight=MINIMAL_AUTHOR_VOTE)
+
+    # Add User -> Post edges (just read from Rating table)
+    # Note this can overwrite default author vote if the author voted for his post.
+    for node in Rating.objects.all():
+        G.add_edge(node.user, node.target, weight=node.vote)
+
+    rep = calc_rep(G, user)
+    for target, rank in rep.items():
+        # print(user, target, rank)
+        if not(isinstance(user, Session) and isinstance(target, Post)):
+            # We only save User->Post edges in DB
+            continue
+        Rating.objects.update_or_create(user=user,
+                                        target=target,
+                                        defaults={'rank': rank})
+    CalcTime.objects.filter(user=user).update(rank_calc_time=timezone.now())
     return user
 
 
 def calc_rep(graph, seed_node):
-    ppr = PersonalizedPageRank(graph, seed_node)
+    ppr = BL_PHT(graph, seed_node)
     reputation = {}
     # print(graph.edges)
     for n in graph.nodes():
@@ -55,23 +83,24 @@ def calc_rep(graph, seed_node):
 
 def single_annotate(user, thread):  # add rank/vote fields to a single thread (for OP post on a thread page)
     if user != thread.session:
-        thread.rank = Rating.objects.get(user=user, target=thread.session).rank
-        thread.vote = Rating.objects.get(user=user, target=thread.session).vote
+        thread.rank = Rating.objects.get(user=user, target=thread).rank
+        thread.vote = Rating.objects.get(user=user, target=thread).vote
     return thread
 
 
 def multi_annotate(user, threads):
     return threads.annotate(
-        rank=Subquery(
+        # Coalesce is required to force NULLs -> 0.0
+        rank=Coalesce(Subquery(
             Rating.objects.filter(
                 user=user,
-                target=OuterRef('session')
+                target=OuterRef('pk')
             ).values('rank')
-        ),
+        ), 0.0),
         vote=Subquery(
             Rating.objects.filter(
                 user=user,
-                target=OuterRef('session')
+                target=OuterRef('pk')
             ).values('vote'))
     )
 
@@ -97,7 +126,8 @@ def list_threads(request, board, pagenum=1):
     user = refresh_rank(request)
 
     threads = board.post_set.all().filter(thread__isnull=True)
-    threads = multi_annotate(user, threads).exclude(rank=0.0).order_by('-rank')
+    threads = multi_annotate(user, threads)
+    threads = threads.exclude(rank=0.0).order_by('-rank')
 
     threads_dict, posts_ids = {}, {}
     paginator = Paginator(threads, 10)
@@ -251,13 +281,11 @@ def info_page(request):
 
 def post_vote(request):
     vote = request.GET['vote']
-    target = Post.objects.get(pk=int(request.GET['post'])).session
+    target = Post.objects.get(pk=int(request.GET['post']))
     user = Session.objects.get(session_key=request.session.session_key)
-    # assert target != user
-    if target != user:
-        rating, _ = Rating.objects.get_or_create(user=user, target=target)
-        if vote and target and rating:
-            rating.vote += 1 if int(vote) == 1 else -1
-            rating.save()
-            return JsonResponse({'vote': rating.vote})
+    rating, _ = Rating.objects.get_or_create(user=user, target=target)
+    if vote and target and rating:
+        rating.vote += 1 if int(vote) == 1 else -1
+        rating.save()
+        return JsonResponse({'vote': rating.vote})
     return JsonResponse({'vote': 'Not allowed'})

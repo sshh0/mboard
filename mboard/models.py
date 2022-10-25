@@ -18,10 +18,10 @@ class Post(models.Model):
         return str(self.pk)
 
     def get_absolute_url(self):
-        if self.thread is None:
-            return f'/{self.board}/thread/{self.pk}/'
-        else:
-            return f'/{self.board}/thread/{self.thread.pk}/#id{self.pk}'
+        base_url = f'/{self.board}/thread'
+        if self.thread is not None:
+            return f'{base_url}/{self.thread.pk}/#id{self.pk}'
+        return f'{base_url}/{self.pk}/'
 
     def posts_ids(self):
         ls = list(self.post_set.values_list('pk', flat=True))
@@ -38,8 +38,8 @@ class Board(models.Model):
 
 
 class Rating(models.Model):
-    user = models.ForeignKey(Session, on_delete=models.CASCADE, null=True, related_name='user')
-    target = models.ForeignKey(Session, on_delete=models.CASCADE, null=True, related_name='target')
+    user = models.ForeignKey(Session, on_delete=models.CASCADE, null=False, related_name='user')
+    target = models.ForeignKey(Post, on_delete=models.CASCADE, null=False, related_name='target')
     vote = models.IntegerField(default=0)
     rank = models.FloatField(default=0)
 
@@ -49,7 +49,6 @@ class Rating(models.Model):
         ]
 
     def __str__(self):
-        # return str(self.user)
         return str(self.target)
 
 
