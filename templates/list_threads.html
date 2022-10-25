@@ -4,11 +4,13 @@
   <div class="container threadList">
     {% translate 'New thread' as btn %}
     {% include 'postform.html' with postformbutton=btn %}
-    <hr>
-    <button class="btn btn-primary" id="discoverBtn">Discover</button>
-    <hr>
-    <div id="discoverBox"></div>
-    <hr>
+    <div id="discoverDiv">
+      <hr>
+      <button class="btn btn-primary" id="discoverBtn">Discover</button>
+      <span id="discoverInfo"></span>
+      <div id="discoverBox"></div>
+      <hr>
+    </div>
     {% for thread, posts in threads.items %}
       <section class="thread" data-threadid="{{ thread.pk }}">
         {% include 'OPpost.html' %}

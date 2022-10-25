@@ -1,4 +1,3 @@
-import random
 from email.utils import parsedate_to_datetime
 from random import randint
 from django.conf import settings
@@ -6,7 +5,7 @@ from captcha.models import CaptchaStore
 from django.db.models import Subquery, OuterRef
 from django.db.models.functions import Coalesce
 from django.shortcuts import render, redirect, reverse, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
 from django.core.paginator import Paginator, InvalidPage
 from django.views.decorators.http import last_modified, require_POST
@@ -14,11 +13,12 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from datetime import timedelta
 from mboard.models import Post, Board, Rating, CalcTime
-from trust import BL_PHT
+from libs.meritrank.trust import BL_PHT
 from .forms import PostForm, ThreadPostForm
 from django.views.decorators.cache import cache_page, never_cache
 import networkx as nx
 from django.contrib.sessions.models import Session
+from django.db.models import Q
 
 # The amount of vote a post gives to the edge into its creator.
 # If there is only a single outgoing edge (which is the case), the actual amount
@@ -136,7 +136,7 @@ def list_threads(request, board, pagenum=1):
 
     threads = board.post_set.all().filter(thread__isnull=True)
     threads = multi_annotate(user, threads)
-    threads = threads.exclude(rank=0.0).order_by('-rank')
+    threads = threads.filter(Q(session=request.session.session_key) | Q(rank__gt=0)).order_by('-rank')
 
     threads_dict, posts_ids = {}, {}
     paginator = Paginator(threads, 10)
@@ -233,18 +233,23 @@ def ajax_load_new_posts(request, thread_id, **kwargs):  # don't proceed if no ne
     return get_new_posts(request, thread)
 
 
-def ajax_discover_new_threads(request, board, **kwargs):  # don't proceed if no new posts, return 304 response
+def ajax_discover_new_threads(request, board, **kwargs):
     board = get_object_or_404(Board, board_link=board)
     user = refresh_rank(request)
-    stranded_threads = multi_annotate(user, board.post_set.all().filter(thread__isnull=True)).filter(rank=0.0)
-    thread = random.choice(stranded_threads)
-    post_ids = {thread.pk: thread.posts_ids()}
-    jsn = render_to_string('OPpost.html',
-                           {'post': thread,
-                            'thread': thread,
-                            'posts_ids': post_ids},
-                           request)
-    return JsonResponse(jsn, safe=False)
+    stranded_threads = multi_annotate(user, board.post_set.all().filter(  # also exclude user's own threads
+        thread__isnull=True)).filter(~Q(session=request.session.session_key) & Q(rank=0.0))
+    jsn = ''
+    if stranded_threads:
+        for thread in stranded_threads:  # could be a lot of threads, a limit should be imposed somehow
+            posts_ids = {thread.pk: thread.posts_ids()}
+            jsn += render_to_string('thread_disc.html',
+                                    {'thread': thread,
+                                     'posts_ids': posts_ids},
+                                    request)
+
+        return JsonResponse(jsn, safe=False)
+    else:
+        return HttpResponse(status=204)
 
 
 def get_new_posts(request, thread):

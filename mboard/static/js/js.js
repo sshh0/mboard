@@ -57,7 +57,6 @@ if ($('.threadList,.threadPage')) { // at least one class ("OR")
     $$('.video-thumb').forEach((video) => video.addEventListener('click', expandVideo));
     $('.js-fetch-new-posts')?.addEventListener('click', fetchNewPosts);
 
-document.getElementById('discoverBtn').addEventListener('click', discoverNewThreads)
     $$('.quote, .reply').forEach((elmnt) => elmnt.addEventListener('click', onClick));
     document.addEventListener('mouseover', function (ev) {
         if (ev.target.classList.contains('quote') || ev.target.classList.contains('reply')) {
@@ -72,7 +71,10 @@ document.getElementById('discoverBtn').addEventListener('click', discoverNewThre
         textAreas[0].addEventListener('input', () => textAreas[1].value = textAreas[0].value)
         textAreas[1].addEventListener('input', () => textAreas[0].value = textAreas[1].value)
     }
-    if ($('.container').classList.contains('threadList')) truncateLongPosts();
+    if ($('.container').classList.contains('threadList')) {
+        truncateLongPosts();
+        document.getElementById('discoverBtn').addEventListener('click', discoverNewThreads);
+    }
     if ($$('.page-link').length === 1) $('.page-link').hidden = true;
 }
 
@@ -372,28 +374,24 @@ function constructReplyElmnt(quote) {
 function discoverNewThreads() {
     let pathname = window.location.pathname;
     pathname = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
-    const urlparams = pathname +'/discover_new_threads.json';
-
+    const urlparams = pathname + '/discover_new_threads.json';
     fetch('' + urlparams, {
         method: "GET",
         headers: {
-            "X-Requested-With": "XMLHttpRequest",
+            "X-Requested-With": "XMLHttpRequest"
         },
     })
         .then(response => {
             if (response.status === 200) {
                 response.json().then(data => {
-                console.log(data);
-                discoverBox.innerHTML = data; });
+                    document.getElementById('discoverBox').innerHTML = data;
+                    document.getElementById('discoverInfo').innerHTML = '';
+                });
             }
-            if (response.status === 304) {
-                fetchStatus.hidden = false;
-                setTimeout(function () {
-                    fetchStatus.hidden = true;
-                }, 10000); // 10 sec
+            if (response.status === 204) {
+                document.getElementById('discoverInfo').innerHTML = 'No new content...';
             }
         });
-
 }
 
 function getLastPostDate(lastLoadedPost) {
