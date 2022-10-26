@@ -40,13 +40,13 @@ NEGATIVE_VOTE_AMPLIFICATION_COEFFICIENT = 10
 SHADOWBAN_THRESHOLD = -0.01
 
 
-def refresh_rank(request):
+def refresh_rank(request, board):
     try:
         Session.objects.get(session_key=request.session.session_key)
     except Session.DoesNotExist:  # new session or user has key not present in db
         request.session.create()
     user = Session.objects.get(session_key=request.session.session_key)
-    obj, created = CalcTime.objects.get_or_create(user=user, defaults={'user': user})
+    obj, created = CalcTime.objects.get_or_create(user=user, board=board, defaults={'user': user, 'board': board})
     cache_expired = obj.rank_calc_time + timedelta(hours=1) > timezone.now()
     if not cache_expired and not created and not settings.RANK_DEBUG:
         return user
@@ -56,14 +56,14 @@ def refresh_rank(request):
     # Add Post -> Author edges
     # Every post gets a single outgoing edge: the edge into its creator.
     # This means the post transitively sends all the votes/merit/credit to its creator.
-    for node in Post.objects.all():
+    for node in board.post_set.all():
         G.add_edge(node, node.session, weight=POST_TO_USER_VOTE)
         # Add Author -> Post edge of a minimum/default size.
         G.add_edge(node.session, node, weight=MINIMAL_AUTHOR_VOTE)
 
     # Add User -> Post edges (just read from Rating table)
     # Note this can overwrite default author vote if the author voted for his post.
-    for node in Rating.objects.all():
+    for node in board.rating_set.all():
         # Do not overwrite edges added by the "add default author edges" procedure above,
         # in case the corresponding DB rank row was added automatically by recalculation procedure earlier.
         # If we do overwrite it with data from the DB, which could be vote=0.0,
@@ -82,10 +82,11 @@ def refresh_rank(request):
         if not (isinstance(user, Session) and isinstance(target, Post)):
             # We only save User->Post edges in DB
             continue
-        Rating.objects.update_or_create(user=user,
+        Rating.objects.update_or_create(board=board,
+                                        user=user,
                                         target=target,
                                         defaults={'rank': rank})
-    CalcTime.objects.filter(user=user).update(rank_calc_time=timezone.now())
+    CalcTime.objects.filter(user=user, board=board).update(rank_calc_time=timezone.now())
     return user
 
 
@@ -141,7 +142,7 @@ def list_threads(request, board, pagenum=1):
     if request.method == 'POST':
         return create_new_thread(request, board)
     form = ThreadPostForm()
-    user = refresh_rank(request)
+    user = refresh_rank(request, board)
 
     threads = board.post_set.all().filter(thread__isnull=True)
     threads = multi_annotate(user, threads)
@@ -192,7 +193,7 @@ def get_thread(request, thread_id, board):
         return create_new_post(request, thread_id, board)
     board = get_object_or_404(Board, board_link=board)
     thread = get_object_or_404(Post, pk=thread_id)
-    user = refresh_rank(request)
+    user = refresh_rank(request, board)
     thread = single_annotate(user=user, thread=thread)
     posts = multi_annotate(user, thread.post_set.all()).exclude(rank__lt=SHADOWBAN_THRESHOLD)
 
@@ -245,7 +246,7 @@ def ajax_load_new_posts(request, thread_id, **kwargs):  # don't proceed if no ne
 
 def ajax_discover_new_threads(request, board, **kwargs):
     board = get_object_or_404(Board, board_link=board)
-    user = refresh_rank(request)
+    user = refresh_rank(request, board)
     stranded_threads = multi_annotate(user, board.post_set.all().filter(  # also exclude user's own threads
         thread__isnull=True)).filter(~Q(session=request.session.session_key) & Q(rank=0.0))
     jsn = ''
