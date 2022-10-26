@@ -39,6 +39,10 @@ NEGATIVE_VOTE_AMPLIFICATION_COEFFICIENT = 10
 # Setting this to 0.0 or higher will effectively hide all posts by stranded (new) users
 SHADOWBAN_THRESHOLD = -0.01
 
+# Only this number of stranded posts will be shown at the end of a thread. The rest
+# will be hidden from the user.
+STRANDED_POSTS_IN_THREAD_LIMIT = 10
+
 
 def refresh_rank(request, board):
     try:
@@ -95,15 +99,19 @@ def calc_rep(graph, seed_node):
     reputation = {}
     # print(graph.edges)
     for n in graph.nodes():
-        if n != seed_node:
+        if n == seed_node:
             reputation[n] = ppr.compute(seed_node, n)
     return reputation
 
 
 def single_annotate(user, thread):  # add rank/vote fields to a single thread (for OP post on a thread page)
     if user != thread.session:
-        thread.rank = Rating.objects.get(user=user, target=thread).rank
-        thread.vote = Rating.objects.get(user=user, target=thread).vote
+        try:
+            obj = Rating.objects.get(user=user, target=thread)
+            thread.rank = obj.rank
+            thread.vote = obj.vote
+        except Rating.DoesNotExist:
+            pass
     return thread
 
 
@@ -197,13 +205,24 @@ def get_thread(request, thread_id, board):
     thread = single_annotate(user=user, thread=thread)
     posts = multi_annotate(user, thread.post_set.all()).exclude(rank__lt=SHADOWBAN_THRESHOLD)
 
+    posts_filtered = []
+    stranded_count = 0
+    # Allow only STRANDED_POSTS_IN_THREAD_LIMIT number of stranded posts in a thread
+    for p in reversed(posts):
+        if p.rank == 0.0 and p.session != user:
+            stranded_count += 1
+            if stranded_count >= STRANDED_POSTS_IN_THREAD_LIMIT:
+                continue
+        posts_filtered.append(p)
+    posts_filtered.reverse()
+
     form = PostForm(initial={'thread_id': thread_id})
     context = {'thread': thread,
                'posts_ids': {thread.pk: thread.posts_ids()},
                'form': form,
                'board': board,
                'rank_debug': settings.RANK_DEBUG,
-               'posts': posts}
+               'posts': posts_filtered}
     return render(request, 'thread.html', context)
 
 
@@ -213,29 +232,31 @@ def ajax_posting(request):
         form = PostForm(data=request.POST, files=request.FILES)
     else:  # new thread
         form = ThreadPostForm(data=request.POST, files=request.FILES)
-    if form.is_valid():
-        new_post = form.save(commit=False)
-        new_post.session_id = request.session.session_key
-        if form.data.get('thread_id'):
-            new_post.thread_id = form.data['thread_id']
-        new_post.board = Board.objects.get(board_link=request.POST['board'])
-        new_post.save()  # '.id' doesn't exist before saving
-        thread_id = new_post.thread_id if new_post.thread_id else new_post.id
-        return JsonResponse({"postok": 'ok', 'thread_id': thread_id})
-    return JsonResponse({'errors': form.errors})
+    if not form.is_valid():
+        return JsonResponse({'errors': form.errors})
+
+    new_post = form.save(commit=False)
+    new_post.session_id = request.session.session_key
+    if form.data.get('thread_id'):
+        new_post.thread_id = form.data['thread_id']
+    new_post.board = Board.objects.get(board_link=request.POST['board'])
+    new_post.save()  # '.id' doesn't exist before saving
+    thread_id = new_post.thread_id if new_post.thread_id else new_post.id
+    return JsonResponse({"postok": 'ok', 'thread_id': thread_id})
 
 
 def ajax_tooltips_onhover(request, thread_id, **kwargs):
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and 'post_id' in kwargs:
-        post = Post.objects.get(pk=kwargs['post_id'])
-        thread = Post.objects.get(pk=thread_id)
-        post_ids = {thread.pk: thread.posts_ids()}
-        jsn = render_to_string('post.html',
-                               {'post': post,
-                                'thread': thread,
-                                'posts_ids': post_ids},
-                               request)
-        return JsonResponse(jsn, safe=False)
+    if not (request.headers.get('X-Requested-With') == 'XMLHttpRequest' and 'post_id' in kwargs):
+        return None
+    post = Post.objects.get(pk=kwargs['post_id'])
+    thread = Post.objects.get(pk=thread_id)
+    post_ids = {thread.pk: thread.posts_ids()}
+    jsn = render_to_string('post.html',
+                           {'post': post,
+                            'thread': thread,
+                            'posts_ids': post_ids},
+                           request)
+    return JsonResponse(jsn, safe=False)
 
 
 @last_modified(lambda request, thread_id, **kwargs: Post.objects.get(pk=thread_id).bump)
@@ -249,41 +270,38 @@ def ajax_discover_new_threads(request, board, **kwargs):
     user = refresh_rank(request, board)
     stranded_threads = multi_annotate(user, board.post_set.all().filter(  # also exclude user's own threads
         thread__isnull=True)).filter(~Q(session=request.session.session_key) & Q(rank=0.0))
-    jsn = ''
-    if stranded_threads:
-        for thread in stranded_threads:  # could be a lot of threads, a limit should be imposed somehow
-            posts_ids = {thread.pk: thread.posts_ids()}
-            jsn += render_to_string('thread_disc.html',
-                                    {'thread': thread,
-                                     'posts_ids': posts_ids},
-                                    request)
-
-        return JsonResponse(jsn, safe=False)
-    else:
+    if not stranded_threads:
         return HttpResponse(status=204)
+    jsn = ''.join(
+        render_to_string(
+            'thread_disc.html',
+            {'thread': thread, 'posts_ids': {thread.pk: thread.posts_ids()}},
+            request)
+        for thread in stranded_threads)  # could be a lot of threads, a limit should be imposed somehow
+
+    return JsonResponse(jsn, safe=False)
 
 
 def get_new_posts(request, thread):
     last_post_date = parsedate_to_datetime(request.headers['If-Modified-Since'])
     posts = thread.post_set.all().filter(date__gt=last_post_date)
     posts_ids = {thread.pk: thread.posts_ids()}
-    html_rendered_string = ''
-    if posts:
-        for post in posts:
-            html_rendered_string += render_to_string(
-                request=request, template_name='post.html',
-                context={
-                    'post': post,
-                    'thread': thread,
-                    'show_unvoted_rank': settings.RANK_DEBUG,
-                    'posts_ids': posts_ids})
-        return JsonResponse(html_rendered_string, safe=False)
+    if not posts:
+        return None
+    html_rendered_string = ''.join(
+        render_to_string(
+            request=request, template_name='post.html',
+            context={
+                'post': post,
+                'thread': thread,
+                'show_unvoted_rank': settings.RANK_DEBUG,
+                'posts_ids': posts_ids})
+        for post in posts)
+    return JsonResponse(html_rendered_string, safe=False)
 
 
 def random_digit_challenge():
-    code = ''
-    for _ in range(4):
-        code += str(randint(0, 9))
+    code = ''.join(str(randint(0, 9)) for _ in range(0, 4))
     return code, code
 
 
@@ -300,14 +318,17 @@ def captcha_ajax_validation(request):
 def info_page(request):
     context = {'board': ' '}
     try:
-        context['plast24h'] = Post.objects.all().filter(date__gte=timezone.now() - timedelta(hours=24)).count()
-        context['firstp_date'] = Post.objects.first().date
-        context['lastp_date'] = Post.objects.last().date
-        context['tcount'] = Post.objects.filter(thread=None).count()
-        context['pcount'] = Post.objects.count()
-        context['bcount'] = Board.objects.count()
-        return render(request, 'info_page.html', context)
+        context.update(
+            {'plast24h': Post.objects.all().filter(date__gte=timezone.now() - timedelta(hours=24)).count(),
+             'firstp_date': Post.objects.first().date,
+             'lastp_date': Post.objects.last().date,
+             'tcount': Post.objects.filter(thread=None).count(),
+             'pcount': Post.objects.count(),
+             'bcount': Board.objects.count()}
+        )
     except Exception:  # noqa
+        pass
+    finally:
         return render(request, 'info_page.html', context)
 
 
