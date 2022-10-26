@@ -39,6 +39,10 @@ NEGATIVE_VOTE_AMPLIFICATION_COEFFICIENT = 10
 # Setting this to 0.0 or higher will effectively hide all posts by stranded (new) users
 SHADOWBAN_THRESHOLD = -0.01
 
+# Only this number of stranded posts will be shown at the end of a thread. The rest
+# will be hidden from the user.
+STRANDED_POSTS_IN_THREAD_LIMIT = 10
+
 
 def refresh_rank(request, board):
     try:
@@ -197,13 +201,24 @@ def get_thread(request, thread_id, board):
     thread = single_annotate(user=user, thread=thread)
     posts = multi_annotate(user, thread.post_set.all()).exclude(rank__lt=SHADOWBAN_THRESHOLD)
 
+    posts_filtered = []
+    stranded_count = 0
+    # Allow only STRANDED_POSTS_IN_THREAD_LIMIT number of stranded posts in a thread
+    for p in reversed(posts):
+        if p.rank == 0.0 and p.session != user:
+            stranded_count += 1
+            if stranded_count >= STRANDED_POSTS_IN_THREAD_LIMIT:
+                continue
+        posts_filtered.append(p)
+    posts_filtered.reverse()
+
     form = PostForm(initial={'thread_id': thread_id})
     context = {'thread': thread,
                'posts_ids': {thread.pk: thread.posts_ids()},
                'form': form,
                'board': board,
                'rank_debug': settings.RANK_DEBUG,
-               'posts': posts}
+               'posts': posts_filtered}
     return render(request, 'thread.html', context)
 
 
@@ -311,7 +326,6 @@ def info_page(request):
         pass
     finally:
         return render(request, 'info_page.html', context)
-
 
 
 def post_vote(request):
