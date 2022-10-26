@@ -99,8 +99,9 @@ def calc_rep(graph, seed_node):
     reputation = {}
     # print(graph.edges)
     for n in graph.nodes():
-        if n == seed_node:
+        if n != seed_node:
             reputation[n] = ppr.compute(seed_node, n)
+            print(n, reputation[n])
     return reputation
 
 
@@ -336,7 +337,7 @@ def post_vote(request):
     vote = request.GET['vote']
     target = Post.objects.get(pk=int(request.GET['post']))
     user = Session.objects.get(session_key=request.session.session_key)
-    rating, _ = Rating.objects.get_or_create(user=user, target=target)
+    rating, _ = Rating.objects.get_or_create(user=user, target=target, board=target.board)
     if vote and target and rating:
         rating.vote += 1 if int(vote) == 1 else -1
         rating.save()
