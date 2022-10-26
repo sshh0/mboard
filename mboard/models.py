@@ -30,7 +30,7 @@ class Post(models.Model):
 
 
 class Board(models.Model):
-    board_link = models.CharField(max_length=5, blank=False, null=False)
+    board_link = models.CharField(max_length=5, unique=True, blank=False, null=False)
     board_title = models.CharField(max_length=20, blank=False, null=False)
 
     def __str__(self):
@@ -42,10 +42,11 @@ class Rating(models.Model):
     target = models.ForeignKey(Post, on_delete=models.CASCADE, null=False, related_name='target')
     vote = models.IntegerField(default=0)
     rank = models.FloatField(default=0)
+    board = models.ForeignKey(Board, to_field='board_link', on_delete=models.CASCADE)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['user', 'target'], name='unique_constraint')
+            models.UniqueConstraint(fields=['board', 'user', 'target'], name='unique_constraint')
         ]
 
     def __str__(self):
@@ -53,8 +54,9 @@ class Rating(models.Model):
 
 
 class CalcTime(models.Model):
-    user = models.OneToOneField(Session, on_delete=models.CASCADE)
+    user = models.ForeignKey(Session, on_delete=models.CASCADE)
     rank_calc_time = models.DateTimeField(null=True, blank=True, auto_now_add=True)
+    board = models.ForeignKey(Board, to_field='board_link', on_delete=models.CASCADE)
 
     def __str__(self):
         return str(self.user)

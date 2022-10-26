@@ -15,11 +15,11 @@ class BoardAdmin(admin.ModelAdmin):
 
 
 class RatingAdmin(admin.ModelAdmin):
-    list_display = ['user', 'target', 'vote', 'rank']
+    list_display = ['user', 'target', 'vote', 'rank', 'board']
 
 
 class CalcTimeAdmin(admin.ModelAdmin):
-    list_display = ['user', 'rank_calc_time']
+    list_display = ['user', 'rank_calc_time', 'board']
 
 
 admin.site.register(Post, PostAdmin)
