@@ -106,8 +106,12 @@ def calc_rep(graph, seed_node):
 
 def single_annotate(user, thread):  # add rank/vote fields to a single thread (for OP post on a thread page)
     if user != thread.session:
-        thread.rank = Rating.objects.get(user=user, target=thread).rank
-        thread.vote = Rating.objects.get(user=user, target=thread).vote
+        try:
+            obj = Rating.objects.get(user=user, target=thread)
+            thread.rank = obj.rank
+            thread.vote = obj.vote
+        except Rating.DoesNotExist:
+            pass
     return thread
 
 
