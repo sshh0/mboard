@@ -346,7 +346,7 @@ def post_vote(request):
     user = Session.objects.get(session_key=request.session.session_key)
     rating, _ = Rating.objects.get_or_create(user=user, target=target, board=target.board)
     if vote and target and rating:
-        if rating.vote_time and rating.vote_time > timezone.now() - timedelta(minutes=10):
+        if rating.vote_time and timezone.now() > rating.vote_time + timedelta(minutes=10):
             return JsonResponse({'vote': 'Expired'})
         rating.vote_time = timezone.now()
         rating.vote += 1 if int(vote) == 1 else -1
