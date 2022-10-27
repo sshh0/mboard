@@ -101,7 +101,6 @@ def calc_rep(graph, seed_node):
     for n in graph.nodes():
         if n != seed_node:
             reputation[n] = ppr.compute(seed_node, n)
-            print(n, reputation[n])
     return reputation
 
 
@@ -111,6 +110,7 @@ def single_annotate(user, thread):  # add rank/vote fields to a single thread (f
             obj = Rating.objects.get(user=user, target=thread)
             thread.rank = obj.rank
             thread.vote = obj.vote
+            thread.vote_time = obj.vote_time
         except Rating.DoesNotExist:
             pass
     return thread
@@ -129,7 +129,14 @@ def multi_annotate(user, threads):
             Rating.objects.filter(
                 user=user,
                 target=OuterRef('pk')
-            ).values('vote'))
+            ).values_list('vote')
+        ),
+        vote_time=Subquery(
+            Rating.objects.filter(
+                user=user,
+                target=OuterRef('pk')
+            ).values('vote_time')
+        )
     )
 
 
@@ -339,6 +346,9 @@ def post_vote(request):
     user = Session.objects.get(session_key=request.session.session_key)
     rating, _ = Rating.objects.get_or_create(user=user, target=target, board=target.board)
     if vote and target and rating:
+        if rating.vote_time and rating.vote_time > timezone.now() - timedelta(minutes=10):
+            return JsonResponse({'vote': 'Expired'})
+        rating.vote_time = timezone.now()
         rating.vote += 1 if int(vote) == 1 else -1
         rating.save()
         return JsonResponse({'vote': rating.vote})

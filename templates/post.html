@@ -9,9 +9,11 @@
         {% if post.vote != 0.0 or rank_debug %}
           <span id="rank" style="color: green">Rank: {{ post.rank|floatformat:3 }}</span>
         {% endif %}
-        <button id="downvote" type="button" onclick="vote(this, 0)">-</button>
-        <button id="upvote" type="button" onclick="vote(this, 1)">+</button>
-        <span id="vote" style="color: red">{{ post.vote }}</span>
+        {% if not post.vote_time %}
+          <button class="downvote" type="button">-</button>
+          <button class="upvote" type="button">+</button>
+          <span class="vote" style="color: red">{{ post.vote }}</span>
+        {% endif %}
       {% endif %}
     </div>
   </div>

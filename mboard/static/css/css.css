@@ -367,7 +367,7 @@ a:hover {
     font-weight: bold;
 }
 
-#upvote, #downvote {
+.upvote, .downvote {
     background: inherit;
     border: none;
     cursor: pointer;

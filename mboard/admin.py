@@ -15,7 +15,7 @@ class BoardAdmin(admin.ModelAdmin):
 
 
 class RatingAdmin(admin.ModelAdmin):
-    list_display = ['user', 'target', 'vote', 'rank', 'board']
+    list_display = ['user', 'target', 'vote', 'rank', 'board', 'vote_time']
 
 
 class CalcTimeAdmin(admin.ModelAdmin):

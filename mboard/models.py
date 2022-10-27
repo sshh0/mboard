@@ -43,6 +43,7 @@ class Rating(models.Model):
     vote = models.IntegerField(default=0)
     rank = models.FloatField(default=0)
     board = models.ForeignKey(Board, to_field='board_link', on_delete=models.CASCADE)
+    vote_time = models.DateTimeField(null=True)
 
     class Meta:
         constraints = [

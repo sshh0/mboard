@@ -21,31 +21,6 @@ $$('#id_file').forEach(function (file) {
 });
 captchaRefresh();
 
-function vote(button, vote) {
-    const postElmnt = button.closest('article');
-    const url = '/postvote/?' + new URLSearchParams({
-        'post': postElmnt.dataset.id,
-        'vote': vote,
-    });
-    fetch(url)
-        .then((r) => r.json())
-        .then(r => {
-            postElmnt.querySelector('#vote').innerText = r.vote;
-        });
-}
-
-function markUpBtn(btn, tagStart, tagEnd) {
-    let elmnt = btn.form.querySelector('textarea');
-    let selStart = elmnt.selectionStart;
-    let selEnd = elmnt.selectionEnd;
-    let textBefore = elmnt.value.substring(0, selStart);
-    let selected = elmnt.value.substring(selStart, selEnd);
-    let textAfter = elmnt.value.substring(selEnd, elmnt.value.length);
-    elmnt.value = textBefore + tagStart + selected + tagEnd + textAfter;
-    elmnt.setSelectionRange(selStart + tagStart.length, selEnd + tagStart.length);
-    elmnt.focus();
-}
-
 if ($('.threadList,.threadPage')) { // at least one class ("OR")
     showQuickPostForm();
     dragPostForm(document.getElementById("quickPostHeader"));
@@ -56,6 +31,8 @@ if ($('.threadList,.threadPage')) { // at least one class ("OR")
     $$('.image').forEach((image) => image.addEventListener('click', expandImage));
     $$('.video-thumb').forEach((video) => video.addEventListener('click', expandVideo));
     $('.js-fetch-new-posts')?.addEventListener('click', fetchNewPosts);
+
+    document.querySelectorAll(".upvote,.downvote").forEach((el) => el.addEventListener('click', setVoteTime))
 
     $$('.quote, .reply').forEach((elmnt) => elmnt.addEventListener('click', onClick));
     document.addEventListener('mouseover', function (ev) {
@@ -76,6 +53,48 @@ if ($('.threadList,.threadPage')) { // at least one class ("OR")
         document.getElementById('discoverBtn').addEventListener('click', discoverNewThreads);
     }
     if ($$('.page-link').length === 1) $('.page-link').hidden = true;
+}
+
+function setVoteTime(el) {
+    const vote = el.target.className === 'upvote' ? 1 : -1;
+    const elmntId = el.target.closest('article').dataset.id;
+
+    if (sessionStorage.getItem(elmntId)) {  // get timestamp from storage
+        const voteTime = Number(sessionStorage.getItem(elmntId));
+        if (Date.now() - voteTime < 600000) {  // user has 10 minutes to change vote
+            votingFunc(el.target, vote)
+        }
+        else alert('expired')
+    }
+    else {  // set user vote timestamp in storage
+        sessionStorage.setItem(elmntId, Date.now().toString());
+        votingFunc(el.target, vote);
+    }
+}
+
+function votingFunc(button, vote) {
+    const postElmnt = button.closest('article');
+    const url = '/postvote/?' + new URLSearchParams({
+        'post': postElmnt.dataset.id,
+        'vote': vote,
+    });
+    fetch(url)
+        .then((r) => r.json())
+        .then(r => {
+            postElmnt.querySelector('.vote').innerText = r.vote;
+        });
+}
+
+function markUpBtn(btn, tagStart, tagEnd) {
+    let elmnt = btn.form.querySelector('textarea');
+    let selStart = elmnt.selectionStart;
+    let selEnd = elmnt.selectionEnd;
+    let textBefore = elmnt.value.substring(0, selStart);
+    let selected = elmnt.value.substring(selStart, selEnd);
+    let textAfter = elmnt.value.substring(selEnd, elmnt.value.length);
+    elmnt.value = textBefore + tagStart + selected + tagEnd + textAfter;
+    elmnt.setSelectionRange(selStart + tagStart.length, selEnd + tagStart.length);
+    elmnt.focus();
 }
 
 async function submitForm(ev) {

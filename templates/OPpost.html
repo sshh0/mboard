@@ -10,11 +10,13 @@
     <div id="voting" style="display: inline-block">
       {% if request.session.session_key != thread.session.session_key %}
         {% if thread.vote != 0.0 or rank_debug %}
-          <span id="rank" style="color: green">Rank: {{ thread.rank|floatformat:3}}</span>
+          <span id="rank" style="color: green">Rank: {{ thread.rank|floatformat:3 }}</span>
         {% endif %}
-        <button id="downvote" type="button" onclick="vote(this, 0)">-</button>
-        <button id="upvote" type="button" onclick="vote(this, 1)">+</button>
-        <span id="vote" style="color: red">{{ thread.vote }}</span>
+        {% if not thread.vote_time %}
+          <button class="downvote" type="button">-</button>
+          <button class="upvote" type="button">+</button>
+          <span class="vote" style="color: red">{{ thread.vote }}</span>
+        {% endif %}
       {% endif %}
     </div>
     <a class="threadlink" href="{{ thread.get_absolute_url }}">{% translate 'Reply' context 'into thread' %}</a>
