@@ -13,6 +13,7 @@ ALLOWED_HOSTS = dotenv_config['ALLOWED_HOSTS'].split()
 
 APPEND_SLASH = True
 
+# CAPTCHA_LENGTH = '6'
 CAPTCHA_FONT_SIZE = 27
 CAPTCHA_LETTER_ROTATION = None
 CAPTCHA_TEST_MODE = False
@@ -25,7 +26,7 @@ else:
 
 BBCODE_DISABLE_BUILTIN_TAGS = True
 BBCODE_ALLOW_SMILIES = False
-BBCODE_ESCAPE_HTML = []  # disable bbcode's esacaping
+BBCODE_ESCAPE_HTML = []  # disable bbcode's escaping
 BBCODE_ALLOW_CUSTOM_TAGS = True
 INSTALLED_APPS = [
     'django.contrib.admin',

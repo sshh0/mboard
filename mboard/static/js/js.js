@@ -63,12 +63,12 @@ if ($('.threadList,.threadPage')) { // at least one class ("OR")
 
 async function submitForm(ev) {
     ev.preventDefault();
+    ev.target.querySelector('.errorlist').innerText = '';
     let form = new FormData(ev.target);
     let validated = await validateCaptcha(form);
     if (validated['status'] === 1) {
         await makePost(form, ev.target);
     } else {
-        ev.target.querySelector('.errorlist').innerText = '';
         ev.target.querySelector('.errorlist').innerText = validated['err'];
         // Object.values(validated['err']).forEach((v) => ev.target.querySelector('.errorlist').innerText += `${v}\n`);
         ev.target.querySelector('.errorlist').hidden = false;
@@ -107,7 +107,7 @@ async function makePost(form, formElmnt) {
                 location.href = location.pathname + 'thread/' + data['thread_id'] + '/#bottom';
             }
         } else {
-            Object.values(data.errors).forEach((v) => formElmnt.querySelector('.errorlist').innerText += `${v}\n`);
+            Object.keys(data).forEach((k) => formElmnt.querySelector('.errorlist').innerText += `${data[k]}\n`);
             formElmnt.querySelector('.errorlist').hidden = false;
         }
     }
@@ -481,8 +481,8 @@ function dragPostForm(elmnt) {
     }
 
     function elementDrag(e) {
-        let winW = document.body.clientWidth;
-        let winH = document.body.clientHeight;
+        let winW = document.documentElement.clientWidth;
+        let winH = document.documentElement.clientHeight;
         let maxX = winW - elmnt.parentNode.offsetWidth;
         let maxY = winH - elmnt.parentNode.offsetHeight;
 
@@ -490,10 +490,10 @@ function dragPostForm(elmnt) {
         pos2 = pos4 - e.clientY;
         pos3 = e.clientX;
         pos4 = e.clientY;
-        if((elmnt.parentNode.offsetTop - pos2) <= maxY && (elmnt.parentNode.offsetTop - pos2) >= 0){
+        if ((elmnt.parentNode.offsetTop - pos2) <= maxY && (elmnt.parentNode.offsetTop - pos2) >= 0) {
             elmnt.parentNode.style.top = (elmnt.parentNode.offsetTop - pos2) + "px";
         }
-        if((elmnt.parentNode.offsetLeft - pos1) <= maxX && (elmnt.parentNode.offsetLeft - pos1) >= 0){
+        if ((elmnt.parentNode.offsetLeft - pos1) <= maxX && (elmnt.parentNode.offsetLeft - pos1) >= 0) {
             elmnt.parentNode.style.left = (elmnt.parentNode.offsetLeft - pos1) + "px";
         }
     }

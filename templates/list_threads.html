@@ -4,6 +4,9 @@
   <div class="container threadList">
     {% translate 'New thread' as btn %}
     {% include 'postform.html' with postformbutton=btn %}
+    <div id="catalog">
+      <a href="{% url 'mboard:catalog' board %}">Каталог</a>
+    </div>
     <hr>
     {% for thread, posts in threads.items %}
       <section class="thread" data-threadid="{{ thread.pk }}">
