@@ -12,13 +12,13 @@
     <button class='post-frm-btn' type="submit">{% translate 'Send' %}</button>
   </div>
   {{ form.text }}
-  <div style="border: 1px solid gray">
-    <button type="button" class="markup btn-s" onclick="markUpBtn(this, '[s]', '[/s]')">[S]</button>
-    <button type="button" class="markup btn-i" onclick="markUpBtn(this, '[i]', '[/i]')">[I]</button>
-    <button type="button" class="markup btn-b" onclick="markUpBtn(this, '[b]', '[/b]')">[B]</button>
-    <button type="button" class="markup btn-spoiler" onclick="markUpBtn(this, '[spoiler]', '[/spoiler]')">[&nbsp]</button>
-    <button type="button" class="markup arrow" onclick="markUpBtn(this, '>', '')">[>]</button>
-    <button type="button" class="markup" onclick="markUpBtn(this, '[roll]', '')">[roll]</button>
+  <div style="border: 1px solid black">
+    <button tabindex="-1" type="button" class="markup btn-s" onclick="markUpBtn(this, '[s]', '[/s]')">[S]</button>
+    <button tabindex="-1" type="button" class="markup btn-i" onclick="markUpBtn(this, '[i]', '[/i]')">[I]</button>
+    <button tabindex="-1" type="button" class="markup btn-b" onclick="markUpBtn(this, '[b]', '[/b]')">[B]</button>
+    <button tabindex="-1" type="button" class="markup btn-spoiler" onclick="markUpBtn(this, '[spoiler]', '[/spoiler]')">[&nbsp]</button>
+    <button tabindex="-1" type="button" class="markup arrow" onclick="markUpBtn(this, '>', '')">[>]</button>
+    <button tabindex="-1" type="button" class="markup" onclick="markUpBtn(this, '[roll]', '')">[roll]</button>
   </div>
   <div>{{ form.captcha }}</div>
   <input type="hidden" name="board" value="{{ board }}">

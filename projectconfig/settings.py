@@ -9,6 +9,11 @@ SECRET_KEY = dotenv_config['SECRET_KEY']
 
 DEBUG = True
 
+#  if this's turned on, POST requests will require validation from the getipintel.net service for determining
+#  suspicious IPs (VPN/proxy). If a POST request client's ip is marked as such, the request will be aborted
+PREVENT_SPAM = False
+EMAIL = dotenv_config['EMAIL']  # queries to getipintel.net service require email to be included
+
 ALLOWED_HOSTS = dotenv_config['ALLOWED_HOSTS'].split()
 
 APPEND_SLASH = True

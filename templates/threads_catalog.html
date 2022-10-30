@@ -4,7 +4,6 @@
 {% block content %}
 {% for thread in threads %}
   <article class="catalog-thread" id="id{{ thread.pk }}" data-id="{{ thread.pk }}">
-    <div class="postcount">Постов: {{ thread.post_set.all|length|add:1 }}</div>
     {% if thread.video_thumb %}
       <div class="video-div">
         <a href="{{ thread.get_absolute_url }}">
@@ -19,8 +18,8 @@
         </a>
       </div>
     {% endif %}
+    <div class="postcount">Постов: {{ thread.post_set.all|length|add:1 }}</div>
     <div class="catalog-thread-text">{% customize_post_string thread.text thread.pk posts_ids thread.pk %}
-      <div class="replies"></div>
     </div>
   </article>
 {% endfor %}

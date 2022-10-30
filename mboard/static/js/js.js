@@ -57,7 +57,6 @@ if ($('.threadList,.threadPage')) { // at least one class ("OR")
         textAreas[0].addEventListener('input', () => textAreas[1].value = textAreas[0].value)
         textAreas[1].addEventListener('input', () => textAreas[0].value = textAreas[1].value)
     }
-    if ($('.container').classList.contains('threadList')) truncateLongPosts();
     if ($$('.page-link').length === 1) $('.page-link').hidden = true;
 }
 
@@ -107,28 +106,28 @@ async function makePost(form, formElmnt) {
                 location.href = location.pathname + 'thread/' + data['thread_id'] + '/#bottom';
             }
         } else {
-            Object.keys(data).forEach((k) => formElmnt.querySelector('.errorlist').innerText += `${data[k]}\n`);
+            Object.keys(data.errors).forEach((k) => formElmnt.querySelector('.errorlist').innerText += `${data.errors[k]}\n`);
             formElmnt.querySelector('.errorlist').hidden = false;
         }
     }
 }
 
-function truncateLongPosts() {
-    for (let t of document.getElementsByClassName('text')) {
-        if (t.textContent.length > 1500) {
-            const span = document.createElement('span');
-            span.className = 'func-btn';
-            span.innerText = ' ……[⤡]';
-            const textAfter = t.innerHTML.substring(1100);
-            t.innerHTML = t.innerHTML.substring(0, 1100);
-            t.append(span);
-            span.addEventListener('click', () => {
-                span.remove();
-                t.innerHTML += textAfter;
-            });
-        }
-    }
-}
+// function truncateLongPosts() {
+//     for (let t of document.getElementsByClassName('text')) {
+//         if (t.textContent.length > 1500) {
+//             const span = document.createElement('span');
+//             span.className = 'func-btn';
+//             span.innerText = ' ……[⤡]';
+//             const textAfter = t.innerHTML.substring(1100);
+//             t.innerHTML = t.innerHTML.substring(0, 1100);
+//             t.append(span);
+//             span.addEventListener('click', () => {
+//                 span.remove();
+//                 t.innerHTML += textAfter;
+//             });
+//         }
+//     }
+// }
 
 function expandVideo(click) {
     click.preventDefault();

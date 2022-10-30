@@ -1,9 +1,8 @@
 from email.utils import parsedate_to_datetime
-from random import randint
 from django.conf import settings
 from captcha.models import CaptchaStore
 from django.shortcuts import render, redirect, reverse, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
 from django.core.paginator import Paginator, InvalidPage
 from django.views.decorators.http import last_modified, require_POST
@@ -13,6 +12,39 @@ from datetime import timedelta
 from mboard.models import Post, Board
 from .forms import PostForm, ThreadPostForm
 from django.views.decorators.cache import cache_page, never_cache
+from urllib.request import urlopen
+
+
+def test_if_ip_is_bad(request):
+    ip = request.META.get("REMOTE_ADDR")
+    bad_ip = False
+    url = 'https://check.getipintel.net/check.php?flag={flag}&ip={ip}&contact={email}'
+    full_url = url.format(flag='m', ip=ip, email=settings.EMAIL)
+    try:
+        ip_check_response = urlopen(full_url)
+        ip_is_bad_chance = ip_check_response.read().decode()
+        if float(ip_is_bad_chance) >= 0.99:
+            bad_ip = True
+    except Exception as e:  # noqa
+        pass
+    finally:
+        return bad_ip
+
+
+def spam_protection(make_new_post):
+    def wrapper(request, *args, **kwargs):
+        if settings.PREVENT_SPAM:
+            bad_ip = test_if_ip_is_bad(request)
+            if bad_ip:
+                return decline_posting(request)
+        return make_new_post(request, *args, **kwargs)
+    return wrapper
+
+
+def decline_posting(request):
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'errors': {'error': 'Proxy/VPN'}})
+    return HttpResponse('Proxy/VPN')
 
 
 @never_cache  # adds headers to response to disable browser cache
@@ -50,15 +82,16 @@ def get_thread(request, thread_id, board):
     return render(request, 'thread.html', context)
 
 
+@spam_protection
 def create_new_post(request, board, new_thread, thread_id=None):
     if new_thread:
         form = ThreadPostForm(data=request.POST, files=request.FILES)
-        if form.is_valid():
-            new_thread = form.save(commit=False)
-            new_thread.board = board
-            new_thread.save()
-            return redirect(reverse('mboard:get_thread', kwargs={'thread_id': new_thread.id, 'board': board}))
-        return render(request, 'post_error.html', {'form': form, 'board': board})
+        if not form.is_valid():
+            return render(request, 'post_error.html', {'form': form, 'board': board})
+        new_thread = form.save(commit=False)
+        new_thread.board = board
+        new_thread.save()
+        return redirect(reverse('mboard:get_thread', kwargs={'thread_id': new_thread.id, 'board': board}))
     else:
         form = PostForm(data=request.POST, files=request.FILES)
         if not form.is_valid():
@@ -74,6 +107,7 @@ def create_new_post(request, board, new_thread, thread_id=None):
             reverse('mboard:get_thread', kwargs={'thread_id': thread_id, 'board': board}) + f'#id{new_post.id}')
 
 
+@spam_protection
 @require_POST
 def ajax_posting(request):
     if request.POST.get('thread_id'):  # it's a post to an existing thread
@@ -121,7 +155,7 @@ def get_new_posts(request, thread):
 
 
 def random_digit_challenge():
-    code = ''.join(str(randint(0, 9)) for _ in range(0, 4))
+    code = str(timezone.now().microsecond)[:4]  # random digits to be used in captcha
     return code, code
 
 
@@ -152,7 +186,7 @@ def info_page(request):
         return render(request, 'info_page.html', context)
 
 
-@cache_page(3600)
+# @cache_page(3600)
 def catalog(request, board):
     board = get_object_or_404(Board, board_link=board)
     threads = board.post_set.filter(thread__isnull=True).order_by('-date')[:50]

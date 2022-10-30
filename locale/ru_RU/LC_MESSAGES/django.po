@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-14 18:52+0300\n"
+"POT-Creation-Date: 2022-10-31 20:17+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,7 +21,7 @@ msgstr ""
 msgid "Anon"
 msgstr "Анон"
 
-#: mboard/forms.py:19 mboard/views.py:127
+#: mboard/forms.py:19 mboard/views.py:167
 msgid "Invalid captcha"
 msgstr "Неверная капча"
 
@@ -48,10 +48,6 @@ msgstr "Только webm/mp4"
 #: mboard/forms.py:56
 msgid "File format not allowed"
 msgstr "Недопустимый формат"
-
-#: mboard/views.py:84
-msgid "Posting error"
-msgstr "Ошибка постинга"
 
 #: templates/OPpost.html:10
 msgctxt "into thread"
@@ -86,7 +82,11 @@ msgstr "Первый пост: "
 msgid "New thread"
 msgstr "Новый тред"
 
-#: templates/list_threads.html:15
+#: templates/list_threads.html:8
+msgid "Catalog"
+msgstr "Каталог"
+
+#: templates/list_threads.html:18
 msgid "Posts in the thread:"
 msgstr "Всего постов:"
 
