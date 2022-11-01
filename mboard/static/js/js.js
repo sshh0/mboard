@@ -6,7 +6,6 @@ const quickPostForm = document.getElementById('quickPostForm');
 const postsLinks = $$('.post .postHeader .postLink, .opPost > .opPostHeader .postLink');
 const quickPostFormTextArea = document.querySelector('#quickPostForm > textarea');
 const postForm = document.getElementById('postForm');
-const onClick = twoTapsOnTouchDevices();
 
 for (let f of document.getElementsByTagName('form')) f.addEventListener('submit', submitForm);
 
@@ -21,21 +20,9 @@ $$('#id_file').forEach(function (file) {
 });
 captchaRefresh();
 
-function markUpBtn(btn, tagStart, tagEnd) {
-    let elmnt = btn.form.querySelector('textarea');
-    let selStart = elmnt.selectionStart;
-    let selEnd = elmnt.selectionEnd;
-    let textBefore = elmnt.value.substring(0, selStart);
-    let selected = elmnt.value.substring(selStart, selEnd);
-    let textAfter = elmnt.value.substring(selEnd, elmnt.value.length);
-    elmnt.value = textBefore + tagStart + selected + tagEnd + textAfter;
-    elmnt.setSelectionRange(selStart + tagStart.length, selEnd + tagStart.length);
-    elmnt.focus();
-}
-
 if ($('.threadList,.threadPage')) { // at least one class ("OR")
     showQuickPostForm();
-    dragPostForm(document.getElementById("quickPostHeader"));
+    drag_elmnt(document.getElementById("quickPostHeader"));
     ApplyJsOnFetchedElements();
     addRepliesToPost();
     altEnterFormSubmit();
@@ -43,7 +30,6 @@ if ($('.threadList,.threadPage')) { // at least one class ("OR")
     $$('.image').forEach((image) => image.addEventListener('click', expandImage));
     $$('.video-thumb').forEach((video) => video.addEventListener('click', expandVideo));
     $('.js-fetch-new-posts')?.addEventListener('click', fetchNewPosts);
-    $$('.quote, .reply').forEach((elmnt) => elmnt.addEventListener('click', onClick));
     document.addEventListener('mouseover', function (ev) {
         if (ev.target.classList.contains('quote') || ev.target.classList.contains('reply')) {
             if (!ev.target.hasOwnProperty('_tippy')) {
@@ -57,6 +43,11 @@ if ($('.threadList,.threadPage')) { // at least one class ("OR")
         textAreas[0].addEventListener('input', () => textAreas[1].value = textAreas[0].value)
         textAreas[1].addEventListener('input', () => textAreas[0].value = textAreas[1].value)
     }
+    if (window.matchMedia("(pointer: coarse)").matches) {  // mobile devices only
+        truncateLongPosts();
+        const onClick = twoTapsOnTouchDevices();
+        $$('.quote, .reply').forEach((elmnt) => elmnt.addEventListener('click', onClick));
+    }
     if ($$('.page-link').length === 1) $('.page-link').hidden = true;
 }
 
@@ -69,7 +60,6 @@ async function submitForm(ev) {
         await makePost(form, ev.target);
     } else {
         ev.target.querySelector('.errorlist').innerText = validated['err'];
-        // Object.values(validated['err']).forEach((v) => ev.target.querySelector('.errorlist').innerText += `${v}\n`);
         ev.target.querySelector('.errorlist').hidden = false;
     }
 }
@@ -103,7 +93,7 @@ async function makePost(form, formElmnt) {
                 formElmnt.querySelector('.clear-file-btn').style.visibility = 'hidden';
             }
             if ($('.threadList')) {
-                location.href = location.pathname + 'thread/' + data['thread_id'] + '/#bottom';
+                location.href = location.pathname + 'thread/' + data['new_post_id'] + '/#bottom';
             }
         } else {
             Object.keys(data.errors).forEach((k) => formElmnt.querySelector('.errorlist').innerText += `${data.errors[k]}\n`);
@@ -112,22 +102,34 @@ async function makePost(form, formElmnt) {
     }
 }
 
-// function truncateLongPosts() {
-//     for (let t of document.getElementsByClassName('text')) {
-//         if (t.textContent.length > 1500) {
-//             const span = document.createElement('span');
-//             span.className = 'func-btn';
-//             span.innerText = ' ……[⤡]';
-//             const textAfter = t.innerHTML.substring(1100);
-//             t.innerHTML = t.innerHTML.substring(0, 1100);
-//             t.append(span);
-//             span.addEventListener('click', () => {
-//                 span.remove();
-//                 t.innerHTML += textAfter;
-//             });
-//         }
-//     }
-// }
+function markUpBtn(btn, tagStart, tagEnd) {
+    let elmnt = btn.form.querySelector('textarea');
+    let selStart = elmnt.selectionStart;
+    let selEnd = elmnt.selectionEnd;
+    let textBefore = elmnt.value.substring(0, selStart);
+    let selected = elmnt.value.substring(selStart, selEnd);
+    let textAfter = elmnt.value.substring(selEnd, elmnt.value.length);
+    elmnt.value = textBefore + tagStart + selected + tagEnd + textAfter;
+    elmnt.setSelectionRange(selStart + tagStart.length, selEnd + tagStart.length);
+    elmnt.focus();
+}
+
+function truncateLongPosts() {
+    for (let t of document.getElementsByClassName('text')) {
+        if (t.textContent.length > 1500) {
+            const span = document.createElement('span');
+            span.className = 'func-btn';
+            span.innerText = ' ……[⤡]';
+            const textAfter = t.innerHTML.substring(1100);
+            t.innerHTML = t.innerHTML.substring(0, 1100);
+            t.append(span);
+            span.addEventListener('click', () => {
+                span.remove();
+                t.innerHTML += textAfter;
+            });
+        }
+    }
+}
 
 function expandVideo(click) {
     click.preventDefault();
@@ -413,20 +415,98 @@ function ApplyJsOnFetchedElements() {
     });
 }
 
-function expandImage(click) {
-    click.preventDefault();
-    click.target.hidden = true;  // click.target == imgClicked.target
-    let expandedImg = document.createElement('img');
-    click.target.closest('.imagediv').className = 'imagediv-expanded';
-    expandedImg.src = click.target.parentElement.href;
-    expandedImg.style.width = '100%';
-    click.target.parentNode.appendChild(expandedImg);
-    expandedImg.addEventListener('click', function (e) {
-        e.preventDefault();
-        expandedImg.previousElementSibling.hidden = false;
-        expandedImg.closest('.imagediv-expanded').className = 'imagediv';
-        expandedImg.remove();
-    });
+// function expandImage(click) {
+//     click.preventDefault();
+//     click.target.hidden = true;  // click.target == imgClicked.target
+//     let expandedImg = document.createElement('img');
+//     click.target.closest('.imagediv').className = 'imagediv-expanded';
+//     expandedImg.src = click.target.parentElement.href;
+//     expandedImg.style.width = '100%';
+//     click.target.parentNode.appendChild(expandedImg);
+//     expandedImg.addEventListener('click', function (e) {
+//         e.preventDefault();
+//         expandedImg.previousElementSibling.hidden = false;
+//         expandedImg.closest('.imagediv-expanded').className = 'imagediv';
+//         expandedImg.remove();
+//     });
+// }
+
+function mouseWheelChangeSize(ev) {
+    ev.preventDefault();
+    ev.target.parentElement.style.height = ''
+    let w = ev.target.parentElement.offsetWidth;
+    ev.target.parentElement.style.width = (w - ev.deltaY * 1.5) + 'px';
+}
+
+function resizeImg(img, maxWidth, maxHeight) {
+    let ratio = Math.min(1, maxWidth / img.naturalWidth, maxHeight / img.naturalHeight);
+    let w = img.naturalWidth * ratio + 'px';
+    let h  = img.naturalHeight * ratio + 'px';
+    return [w, h]
+}
+
+function expandImage(ev) {
+    ev.preventDefault();
+    let imgElmnt = document.getElementById('expanded-img');
+
+    if (imgElmnt) {
+        if (imgElmnt.src === ev.target.parentElement.href) {
+            imgElmnt.parentElement.remove()
+        } else {
+            imgElmnt.src = '';
+            imgElmnt.src = ev.target.parentElement.href;
+        }
+    } else {
+        let imgElmnt = document.createElement('img');
+        imgElmnt.id = 'expanded-img';
+        imgElmnt.src = ev.target.parentElement.href;
+
+        let imgWrap = document.createElement('div');
+        imgWrap.id = 'expanded-img-wrap';
+
+        let mainWrap = document.getElementById('foreground-div');
+
+        // function calculateAspectRatio(img, maxWidth, maxHeight) {
+        //     let ratio = Math.min(maxWidth / img.naturalWidth, maxHeight / img.naturalHeight);
+        //     return { width: img.naturalWidth*ratio, height: img.naturalHeight*ratio };
+        // }
+
+        imgElmnt.onload = function () {
+            [imgWrap.style.width, imgWrap.style.height] =  resizeImg(imgElmnt, window.innerWidth, window.innerHeight);
+        };
+
+        imgWrap.appendChild(imgElmnt);
+        mainWrap.appendChild(imgWrap);
+
+        drag_elmnt(imgElmnt);
+
+        ['mousedown', 'mousemove', 'wheel'].forEach(function (e) {
+            imgWrap.addEventListener(e, handleEvent)
+        })
+    }
+}
+
+function handleEvent(ev) {
+    switch (ev.type) {
+        case 'mousemove':
+            ev.target.mouseDown = false;
+            return
+        case 'mousedown':
+            ev.target.mouseDown = true
+            ev.target.addEventListener('mouseup', handleEvent);
+            return
+        case 'mouseup':
+            if (ev.target.mouseDown === true && ev.button === 0) {
+                ev.target.parentElement.remove();
+            }
+            return;
+        case 'wheel':
+            mouseWheelChangeSize(ev);
+            return;
+        // case 'touchmove':
+        //     mouseWheelChangeSize(ev);
+        //     return;
+    }
 }
 
 function showQuickPostForm() {
@@ -467,7 +547,7 @@ function setTextValue(ev) {
 
 }
 
-function dragPostForm(elmnt) {
+function drag_elmnt(elmnt) {
     let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
     elmnt.onmousedown = dragMouseDown;
 
@@ -480,21 +560,12 @@ function dragPostForm(elmnt) {
     }
 
     function elementDrag(e) {
-        let winW = document.documentElement.clientWidth;
-        let winH = document.documentElement.clientHeight;
-        let maxX = winW - elmnt.parentNode.offsetWidth;
-        let maxY = winH - elmnt.parentNode.offsetHeight;
-
         pos1 = pos3 - e.clientX;
         pos2 = pos4 - e.clientY;
         pos3 = e.clientX;
         pos4 = e.clientY;
-        if ((elmnt.parentNode.offsetTop - pos2) <= maxY && (elmnt.parentNode.offsetTop - pos2) >= 0) {
-            elmnt.parentNode.style.top = (elmnt.parentNode.offsetTop - pos2) + "px";
-        }
-        if ((elmnt.parentNode.offsetLeft - pos1) <= maxX && (elmnt.parentNode.offsetLeft - pos1) >= 0) {
-            elmnt.parentNode.style.left = (elmnt.parentNode.offsetLeft - pos1) + "px";
-        }
+        elmnt.parentNode.style.top = (elmnt.parentNode.offsetTop - pos2) + "px";
+        elmnt.parentNode.style.left = (elmnt.parentNode.offsetLeft - pos1) + "px";
     }
 
     function closeDragElement() {
@@ -502,6 +573,42 @@ function dragPostForm(elmnt) {
         document.onmousemove = null;
     }
 }
+
+// function dragPostForm(elmnt) {
+//     let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+//     elmnt.onmousedown = dragMouseDown;
+//
+//     function dragMouseDown(e) {
+//         e.preventDefault();
+//         pos3 = e.clientX;
+//         pos4 = e.clientY;
+//         document.onmouseup = closeDragElement;
+//         document.onmousemove = elementDrag;
+//     }
+//
+//     function elementDrag(e) {
+//         let winW = document.documentElement.clientWidth;
+//         let winH = document.documentElement.clientHeight;
+//         let maxX = winW - elmnt.parentNode.offsetWidth;
+//         let maxY = winH - elmnt.parentNode.offsetHeight;
+//
+//         pos1 = pos3 - e.clientX;
+//         pos2 = pos4 - e.clientY;
+//         pos3 = e.clientX;
+//         pos4 = e.clientY;
+//         if ((elmnt.parentNode.offsetTop - pos2) <= maxY && (elmnt.parentNode.offsetTop - pos2) >= 0) {
+//             elmnt.parentNode.style.top = (elmnt.parentNode.offsetTop - pos2) + "px";
+//         }
+//         if ((elmnt.parentNode.offsetLeft - pos1) <= maxX && (elmnt.parentNode.offsetLeft - pos1) >= 0) {
+//             elmnt.parentNode.style.left = (elmnt.parentNode.offsetLeft - pos1) + "px";
+//         }
+//     }
+//
+//     function closeDragElement() {
+//         document.onmouseup = null;
+//         document.onmousemove = null;
+//     }
+// }
 
 function focusTextArea() {
     $('#postForm > textarea').focus();

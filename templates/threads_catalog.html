@@ -19,7 +19,7 @@
       </div>
     {% endif %}
     <div class="postcount">Постов: {{ thread.post_set.all|length|add:1 }}</div>
-    <div class="catalog-thread-text">{% customize_post_string thread.text thread.pk posts_ids thread.pk %}
+    <div class="catalog-thread-text">{{ thread.text|safe }}
     </div>
   </article>
 {% endfor %}

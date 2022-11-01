@@ -1,12 +1,35 @@
 {% load i18n %}
 {% include '_base.html' %}
 {% block content %}
-  <ul style="text-align: center; display: inline">
+  <ul style="text-align: center; display: inline; font-size: 15px; font-family: monospace">
     <li>{% translate 'Posts today:' %} {{ plast24h }}</li>
     <li>{% translate 'Threads total: ' %} {{ tcount }}</li>
     <li>{% translate 'Posts total: ' %} {{ pcount }}</li>
     <li>{% translate 'Boards total: ' %} {{ bcount }}</li>
-    <li>{% translate 'Last post: ' %} {{ lastp_date|date:'d/m/Y, H:i' }}</li>
     <li>{% translate 'First post: ' %} {{ firstp_date|date:'d/m/Y, H:i' }}</li>
+    <li>{% translate 'Last post: ' %} {{ lastp_date|date:'d/m/Y, H:i' }}</li>
   </ul>
+
+  <table>
+    <tbody>
+    <tr>
+      <th>Доска</th>
+      <th>Пост</th>
+      <th>Время</th>
+      <th>Текст</th>
+    </tr>
+    {% for post in posts %}
+    <tr>
+    <td>{{ post.board }}</td>
+    <td><a href="{{ post.get_absolute_url }}">{{ post }}</a></td>
+    <td style="white-space: nowrap">{{ post.date|date:'d/m/Y, H:i' }}</td>
+    <td>{{ post.text|truncatechars:220|safe|striptags }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+
+
+
 {% endblock %}

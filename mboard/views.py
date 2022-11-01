@@ -12,43 +12,11 @@ from datetime import timedelta
 from mboard.models import Post, Board
 from .forms import PostForm, ThreadPostForm
 from django.views.decorators.cache import cache_page, never_cache
-from urllib.request import urlopen
-
-
-def test_if_ip_is_bad(request):
-    ip = request.META.get("REMOTE_ADDR")
-    bad_ip = False
-    url = 'https://check.getipintel.net/check.php?flag={flag}&ip={ip}&contact={email}'
-    full_url = url.format(flag='m', ip=ip, email=settings.EMAIL)
-    try:
-        ip_check_response = urlopen(full_url)
-        ip_is_bad_chance = ip_check_response.read().decode()
-        if float(ip_is_bad_chance) >= 0.99:
-            bad_ip = True
-    except Exception as e:  # noqa
-        pass
-    finally:
-        return bad_ip
-
-
-def spam_protection(make_new_post):
-    def wrapper(request, *args, **kwargs):
-        if settings.PREVENT_SPAM:
-            bad_ip = test_if_ip_is_bad(request)
-            if bad_ip:
-                return decline_posting(request)
-        return make_new_post(request, *args, **kwargs)
-    return wrapper
-
-
-def decline_posting(request):
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({'errors': {'error': 'Proxy/VPN'}})
-    return HttpResponse('Proxy/VPN')
+from mboard.utils import process_post, spam_protection
 
 
 @never_cache  # adds headers to response to disable browser cache
-@cache_page(3600)  # cache also resets (signals.py) after saving a new post, so it's only useful under a small load
+# @cache_page(3600)  # cache also resets (signals.py) after saving a new post, so it's only useful under a small load
 def list_threads(request, board, pagenum=1):
     board = get_object_or_404(Board, board_link=board)
     if request.method == 'POST':
@@ -64,9 +32,7 @@ def list_threads(request, board, pagenum=1):
     for thread in threads:
         posts_to_display = thread.post_set.all().order_by('-date')[:4]
         threads_dict[thread] = reversed(posts_to_display)
-        posts_ids[thread.pk] = thread.posts_ids()
-    context = {'threads': threads_dict, 'form': form, 'paginator': paginator, 'page_obj': threads, 'board': board,
-               'posts_ids': posts_ids}
+    context = {'threads': threads_dict, 'form': form, 'paginator': paginator, 'page_obj': threads, 'board': board}
     return render(request, 'list_threads.html', context)
 
 
@@ -83,13 +49,14 @@ def get_thread(request, thread_id, board):
 
 
 @spam_protection
-def create_new_post(request, board, new_thread, thread_id=None):
+def create_new_post(request, board, new_thread, thread_id=None):  # pure html posting
     if new_thread:
         form = ThreadPostForm(data=request.POST, files=request.FILES)
         if not form.is_valid():
             return render(request, 'post_error.html', {'form': form, 'board': board})
         new_thread = form.save(commit=False)
         new_thread.board = board
+        new_thread.text = process_post(new_thread)
         new_thread.save()
         return redirect(reverse('mboard:get_thread', kwargs={'thread_id': new_thread.id, 'board': board}))
     else:
@@ -98,8 +65,8 @@ def create_new_post(request, board, new_thread, thread_id=None):
             return render(request, 'post_error.html', {'form': form, 'board': board})
         new_post = form.save(commit=False)
         new_post.thread_id = thread_id
-        new_post.session_id = request.session.session_key
         new_post.thread.bump = new_post.bump
+        new_post.text = process_post(new_post)
         new_post.thread.save()
         new_post.board = new_post.thread.board
         new_post.save()
@@ -121,9 +88,10 @@ def ajax_posting(request):
     if form.data.get('thread_id'):
         new_post.thread_id = form.data['thread_id']
     new_post.board = Board.objects.get(board_link=request.POST['board'])
+    new_post.text = process_post(new_post)
     new_post.save()  # '.id' doesn't exist before saving
-    thread_id = new_post.thread_id if new_post.thread_id else new_post.id
-    return JsonResponse({"postok": 'ok', 'thread_id': thread_id})
+    new_post_id = new_post.thread_id if new_post.thread_id else new_post.id
+    return JsonResponse({"postok": 'ok', 'new_post_id': new_post_id})
 
 
 def ajax_tooltips_onhover(request, thread_id, **kwargs):
@@ -134,6 +102,7 @@ def ajax_tooltips_onhover(request, thread_id, **kwargs):
         jsn = render_to_string('post.html',
                                {'post': post, 'thread': thread, 'posts_ids': post_ids}, request)
         return JsonResponse(jsn, safe=False)
+    return HttpResponse(status=404)
 
 
 @last_modified(lambda request, thread_id, **kwargs: Post.objects.get(pk=thread_id).bump)
@@ -178,7 +147,8 @@ def info_page(request):
              'lastp_date': Post.objects.last().date,
              'tcount': Post.objects.filter(thread=None).count(),
              'pcount': Post.objects.count(),
-             'bcount': Board.objects.count()}
+             'bcount': Board.objects.count(),
+             'posts': Post.objects.order_by('-date')[:20]}
         )
     except Exception:  # noqa
         pass
@@ -186,7 +156,7 @@ def info_page(request):
         return render(request, 'info_page.html', context)
 
 
-# @cache_page(3600)
+@cache_page(3600)
 def catalog(request, board):
     board = get_object_or_404(Board, board_link=board)
     threads = board.post_set.filter(thread__isnull=True).order_by('-date')[:50]

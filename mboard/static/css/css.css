@@ -92,10 +92,6 @@ body {
     display: table;
 }
 
-.imagediv a {
-    float: left;
-}
-
 div iframe {
     width: 640px;
     height: 360px;
@@ -400,8 +396,7 @@ a:hover {
     float: none;
 }
 
-/*@media only screen and (hover: none) and (pointer: coarse) {*/
-@media only screen and (max-width: 768px) {
+@media (max-width: 768px) {
     #quickPostForm {
         left: 0;
         position: sticky;
@@ -420,4 +415,42 @@ a:hover {
     .catalog-thread-text {
         max-width: 150px;
     }
+
+    .imagediv, .video-div{
+        float: none;
+    }
+}
+
+@media only screen and (hover: none) and (pointer: coarse) {
+    .text {
+        max-height: none;
+    }
+}
+
+td, th {
+    padding: 5px;
+    border: 1px solid #4d4c4c;
+}
+
+table {
+    margin-top: 30px;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 12px;
+    line-height: 1;
+}
+
+
+#expanded-img {
+    width: 100%;
+    height: 100%;
+}
+
+#expanded-img-wrap {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    padding: 8px 8px 8px;
+    background-color: rgb(85, 85, 85);
 }

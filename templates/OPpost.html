@@ -31,7 +31,8 @@
       </a>
     </div>
   {% endif %}
-  <div class="text">{% customize_post_string thread.text thread.pk posts_ids thread.pk %}
+  <div class="text">
+    {{ thread.text|safe }}
     <div class="replies"></div>
   </div>
 </article>
