@@ -17,11 +17,15 @@
   {% endif %}
   {% if post.thumbnail %}
     <div class="imglink">
-      <a target="_blank" href="{{ post.image.url }}">{{ post.image.name|strippath|truncatechars:33 }}</a>
+      <a target="_blank" href="{{post.image.url}}">
+        {{ post.image.name|strippath|truncatechars:33 }}
+      </a>
       ({{ post.image.size|filesizeformat }})
     </div>
     <div class="imagediv">
-      <a href="{{ post.image.url }}"><img loading="lazy" class="image" src="{{ post.thumbnail.url }}" alt=""></a>
+      <a href="{{ post.image.url }}" data-width="{{ post.image.width }}" data-height="{{ post.image.height }}">
+        <img loading="lazy" class="image" src="{{ post.thumbnail.url }}" alt="">
+      </a>
     </div>
   {% endif %}
   <div class="text">{{ post.text|safe }}</div>

@@ -13,17 +13,17 @@
   <table>
     <tbody>
     <tr>
-      <th>Доска</th>
-      <th>Пост</th>
-      <th>Время</th>
-      <th>Текст</th>
+      <th>{% translate 'Board' %}</th>
+      <th>{% translate 'Post' %}</th>
+      <th>{% translate 'Time' %}</th>
+      <th>{% translate 'Text' %}</th>
     </tr>
     {% for post in posts %}
     <tr>
     <td>{{ post.board }}</td>
     <td><a href="{{ post.get_absolute_url }}">{{ post }}</a></td>
     <td style="white-space: nowrap">{{ post.date|date:'d/m/Y, H:i' }}</td>
-    <td>{{ post.text|truncatechars:220|safe|striptags }}</td>
+    <td>{{ post.text|truncatechars:220|striptags }}</td>
     </tr>
     {% endfor %}
     </tbody>

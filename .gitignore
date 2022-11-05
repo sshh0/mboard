@@ -1,0 +1,6 @@
+/.env
+/media/
+/venv/
+/.idea/
+/.gitignore
+/db.sqlite3

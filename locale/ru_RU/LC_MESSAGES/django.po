@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-31 20:17+0300\n"
+"POT-Creation-Date: 2022-11-06 12:14+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,7 +21,7 @@ msgstr ""
 msgid "Anon"
 msgstr "Анон"
 
-#: mboard/forms.py:19 mboard/views.py:167
+#: mboard/forms.py:19 mboard/views.py:136
 msgid "Invalid captcha"
 msgstr "Неверная капча"
 
@@ -54,6 +54,10 @@ msgctxt "into thread"
 msgid "Reply"
 msgstr "В тред"
 
+#: templates/header.html:7
+msgid "Statistics"
+msgstr "Статистика"
+
 #: templates/info_page.html:5
 msgid "Posts today:"
 msgstr "Постов сегодня: "
@@ -71,12 +75,28 @@ msgid "Boards total: "
 msgstr "Всего досок: "
 
 #: templates/info_page.html:9
+msgid "First post: "
+msgstr "Первый пост: "
+
+#: templates/info_page.html:10
 msgid "Last post: "
 msgstr "Последний пост: "
 
-#: templates/info_page.html:10
-msgid "First post: "
-msgstr "Первый пост: "
+#: templates/info_page.html:16
+msgid "Board"
+msgstr "Доска"
+
+#: templates/info_page.html:17
+msgid "Post"
+msgstr "Пост"
+
+#: templates/info_page.html:18
+msgid "Time"
+msgstr "Время"
+
+#: templates/info_page.html:19
+msgid "Text"
+msgstr "Текст"
 
 #: templates/list_threads.html:5
 msgid "New thread"

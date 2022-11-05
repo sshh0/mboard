@@ -2511,4 +2511,3 @@
   return tippy;
 
 })));
-//# sourceMappingURL=tippy-bundle.umd.js.map

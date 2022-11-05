@@ -22,11 +22,11 @@
   {% endif %}
   {% if thread.thumbnail %}
     <div class="imglink">
-      <a target="_blank" href="{{ thread.image.url }}">{{ thread.image.url|strippath|truncatechars:33 }}</a>
+      <a target="_blank" href="{{ thread.image.url }}">{{ thread.image.name|strippath|truncatechars:33 }}</a>
       ({{ thread.image.size|filesizeformat }})
     </div>
     <div class="imagediv">
-      <a href="{{ thread.image.url }}">
+      <a href="{{ thread.image.url }}" data-width="{{ thread.image.width }}" data-height="{{ thread.image.height }}">
         <img class="image" src="{{ thread.thumbnail.url }}" alt="">
       </a>
     </div>
