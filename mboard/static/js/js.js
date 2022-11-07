@@ -52,6 +52,11 @@ if ($('.threadList,.threadPage')) { // at least one class ("OR")
     if ($$('.page-link').length === 1) $('.page-link').hidden = true;
 }
 
+function changeTheme(elmnt) {
+    document.getElementById('theme').href = '/static/css/' + elmnt.value + '.css';
+    localStorage.setItem('theme', elmnt.value);
+}
+
 async function submitForm(ev) {
     ev.preventDefault();
     ev.target.querySelector('.errorlist').innerText = '';

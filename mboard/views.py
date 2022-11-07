@@ -16,7 +16,7 @@ from mboard.utils import process_post, spam_protection
 
 
 @never_cache  # adds headers to response to disable browser cache
-@cache_page(3600)  # cache also resets (signals.py) after saving a new post, so it's only useful under a small load
+# @cache_page(3600)  # cache also resets (signals.py) after saving a new post, so it's only useful under a small load
 def list_threads(request, board, pagenum=1):
     board = get_object_or_404(Board, board_link=board)
     if request.method == 'POST':
@@ -159,5 +159,5 @@ def info_page(request):
 @cache_page(3600)
 def catalog(request, board):
     board = get_object_or_404(Board, board_link=board)
-    threads = board.post_set.filter(thread__isnull=True).order_by('-date')[:50]
+    threads = board.post_set.filter(thread__isnull=True).order_by('-bump')[:50]
     return render(request, 'threads_catalog.html', context={'board': board, 'threads': threads})

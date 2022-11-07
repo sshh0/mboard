@@ -1,0 +1,19 @@
+:root {
+    --body-clr: #d7d9db;
+    --bg-color: #1d1f21;
+    --post-bg: #282a2e;
+    --op-post-header-clr: #999999;
+    --post-header-clr: #999999;
+    --link-clr: #6eafdb;
+    --form-btn-clr: #6eafdb;
+    --btn-onhover: white;
+    --post-count-clr: #inherit;
+    --post-link-clr: #CCCCCC;
+    --textarea-clr: #CCCCCC;
+    --input-field: #CCCCCC;
+    --post-frm-bg: #282a2e;
+    --input-border: #666666 1px solid;
+    --post-border: #666666 1px solid;
+    --post-form-btn-bg: #333333;
+    --post-form-btn-clr: #CCCCCC;
+}

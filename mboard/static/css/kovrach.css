@@ -1,0 +1,23 @@
+:root {
+    --body-clr: #C6985C;
+    --bg-color: scroll #211F1A url('muon_bg.jpg') repeat;
+    --post-bg: url('muon_posts.jpg') #292825;
+    --op-post-header-clr: #9B8165;
+    --post-header-clr: #9B8165;
+    --link-clr: #FFD97A;
+    --form-btn-clr: #FFD97A;
+    --post-count-clr: #9B8165;
+    --post-link-clr: #9B8165;
+    --textarea-clr: #FEC77D;
+    --input-field: #FEC77D;
+    --post-frm-bg: #3E3C38 url('muon_inputs.jpg');
+    --input-border: 1px solid black;
+    --post-border: 1px solid #34352D;
+    --post-form-btn-clr: #FEC77D;
+    --btn-onhover: #a74300;
+    --post-form-btn-bg: linear-gradient(rgb(74, 74, 74) 0%,
+                                        rgb(49, 49, 49) 25%,
+                                        rgb(41, 41, 41) 50%,
+                                        rgb(49, 49, 49) 75%,
+                                        rgb(74, 74, 74) 100%);
+}

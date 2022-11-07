@@ -4,6 +4,10 @@
     <a href="{% url 'mboard:list_threads' 'b' %}" style="margin-left: 10px;">/b</a>
     <a href="{% url 'mboard:list_threads' 'test' %}" style="margin-left: 10px;">/test</a>
     <a href="{% url 'mboard:list_threads' 'int' %}" style="margin-left: 10px;">/int</a>
+    <select id="theme-select" onchange="changeTheme(this)">
+      <option value="dark" selected="selected">Dark</option>
+      <option value="kovrach">Kovrach</option>
+    </select>
     <a href="{% url 'mboard:info_page' %}" style="float: right;">{% translate 'Statistics' %}</a>
   </div>
   <h1 style="text-align: center; color: #FFD97A; font-family: sans-serif">

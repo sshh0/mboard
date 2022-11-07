@@ -23,17 +23,17 @@
 }
 
 body {
-    background: scroll #211F1A url('muon_bg.jpg') repeat;
+    background: var(--bg-color);
     /*min-height: 100vh;*/
     margin: 0;
-    color: #C6985C;
+    color: var(--body-clr);
 
 }
 
 .post {
     display: table;
-    background: url('muon_posts.jpg') #292825;
-    border: 1px solid #34352D;
+    background: var(--post-bg);
+    border: var(--post-border);
     padding: 10px;
     margin-top: 15px;
 }
@@ -41,8 +41,8 @@ body {
 .postQuote {
     display: table;
     padding: 7px;
-    background: url('muon_posts.jpg') #292825;
-    color: #C6985C;
+    background: var(--post-bg);
+    color: var(--body-clr);
     font-size: 15px;
 
 }
@@ -67,11 +67,11 @@ body {
 }
 
 .opPostHeader {
-    color: #9B8165;
+    color: var(--op-post-header-clr);
 }
 
 .postHeader {
-    color: #9B8165;
+    color: var(--post-header-clr);
     margin-bottom: 5px;
 }
 
@@ -116,8 +116,8 @@ summary {
 #postForm {
     width: max-content;
     margin: 2% auto auto;
-    background: #3E3C38 url('muon_inputs.jpg');
-    border: 1px solid black;
+    background: var(--post-frm-bg);
+    border: var(--input-border);
     padding: 1px;
 }
 
@@ -125,14 +125,14 @@ summary {
     position: fixed;
     left: 30%;
     top: 40%;
-    background: #3E3C38 url('muon_inputs.jpg');
-    border: 1px solid black;
+    background: var(--post-frm-bg);
+    border: var(--input-border);
     padding: 3px;
 }
 
 textarea {
     background: inherit;
-    color: #FEC77D;
+    color: var(--input-field);
     font-size: inherit;
     font-family: inherit;
     outline: none;
@@ -152,8 +152,8 @@ textarea {
 input {
     background: inherit;
     outline: none;
-    color: #FEC77D;
-    border: 1px solid black;
+    color: var(--input-field);
+    border: var(--input-border);
     flex-grow: 1;
 }
 
@@ -184,19 +184,14 @@ form {
     float: left;
 }
 
-a {
-    color: #FFD97A;
-    text-decoration: none
-}
-
 #showFormButton {
     font-size: large;
-    color: #FFD97A;
+    color: var(--form-btn-clr);
     cursor: pointer;
 }
 
 #showFormButton:hover {
-    color: #a74300;
+    color: var(--btn-onhover);
 }
 
 .imglink {
@@ -218,7 +213,7 @@ a {
 
 .postcount {
     font: caption;
-    color: #9B8165;
+    color: var(--post-count-clr);
     clear: both;
 }
 
@@ -263,12 +258,11 @@ hr {
 }
 
 .roll {
-    background-color: green;
-    color: black;
+    color: yellow;
 }
 
 .postLink {
-    color: #9B8165;
+    color: var(--post-link-clr);
 }
 
 .video-close-btn {
@@ -321,18 +315,14 @@ hr {
 
 #num {
     font-weight: bold;
-    color: #FFD97A;
+    color: var(--link-clr);
 }
 
 .post-frm-btn {
+    background: var(--post-form-btn-bg);
+    color: var(--post-form-btn-clr);
     float: right;
-    background: linear-gradient(rgb(74, 74, 74) 0%,
-                                rgb(49, 49, 49) 25%,
-                                rgb(41, 41, 41) 50%,
-                                rgb(49, 49, 49) 75%,
-                                rgb(74, 74, 74) 100%);
     line-height: 2;
-    color: #FEC77D;
     border: none;
 }
 
@@ -340,8 +330,13 @@ hr {
     box-shadow: inset 0 0 4px 1px #9B8165;
 }
 
+a {
+    color: var(--link-clr);
+    text-decoration: none;
+}
+
 a:hover {
-    color: #a74300
+    color: var(--btn-onhover);
 }
 
 .markup {
@@ -454,4 +449,12 @@ table {
     transform: translate(-50%, -50%);
     padding: 8px 8px 8px;
     background-color: rgb(85, 85, 85);
+}
+
+#theme-select {
+    float: right;
+    margin-left: 3%;
+    background: var(--bg-color);
+    border: var(--input-border);
+    color: var(--body-clr);
 }

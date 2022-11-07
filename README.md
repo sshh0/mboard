@@ -11,14 +11,15 @@ Simple imageboard written in Python/Django
 - Ajax posting
 - BB code tags
 - Youtube embeds
+- Interface in English/Russian depending on browser language
 
 #### Dependecies:
-- django-simple-captcha  
-- python-dotenv: for storing SECRET_KEY, ALLOWED_HOSTS without exposing them   
-- python-magic: file uploading validation  
+- django-simple-captcha
+- python-dotenv: for storing SECRET_KEY, ALLOWED_HOSTS without exposing them
+- python-magic: file uploading validation
 - Pillow: thumbnails creation
 - django-precise-bbcode: BB code tags: [spoiler][/spoiler], [b][/b], [s][/s]...
-
+- FFmpeg
 
 #### Installation:
 ```

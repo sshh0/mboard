@@ -22,7 +22,7 @@ def process_post(new_post):
 def color_quoted_text(post_string):
     quoted_text = re.findall(r'^\s*&gt;.+', post_string, flags=re.MULTILINE)  # '^\s*&gt;[^&gt;].+'
     if quoted_text:
-        span = "<span style='color:#789922'>{index}</span>"
+        span = "<span style='color:#c2ad70'>{index}</span>"
         for count, index in enumerate(quoted_text):
             post_string = post_string.replace(index, span.format(index=index.strip()))
     return post_string
