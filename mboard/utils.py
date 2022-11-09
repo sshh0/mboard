@@ -16,7 +16,7 @@ def process_post(new_post):
     parser = get_parser()
     new_post.text = parser.render(new_post.text)
     new_post.text = roll_game(new_post.text)
-    return mark_safe(new_post.text.replace("\n", "<br>"))
+    return mark_safe(new_post.text)
 
 
 def color_quoted_text(post_string):

@@ -42,6 +42,7 @@ body {
     display: table;
     padding: 7px;
     background: var(--post-bg);
+    border: var(--post-border);
     color: var(--body-clr);
     font-size: 15px;
 

@@ -1,7 +1,7 @@
 :root {
-    --body-clr: #d7d9db;
-    --bg-color: #1d1f21;
-    --post-bg: #282a2e;
+    --body-clr: #999;
+    --bg-color: #131516;
+    --post-bg: rgb(34, 36, 38);
     --op-post-header-clr: #999999;
     --post-header-clr: #999999;
     --link-clr: #6eafdb;
