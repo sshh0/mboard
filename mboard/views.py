@@ -37,7 +37,7 @@ def list_threads(request, board, pagenum=1):
 
 
 @never_cache
-@cache_page(3600)
+# @cache_page(3600)
 def get_thread(request, thread_id, board):
     if request.method == 'POST':
         return create_new_post(request, board, new_thread=False, thread_id=thread_id)
@@ -54,22 +54,15 @@ def create_new_post(request, board, new_thread, thread_id=None):  # pure html po
         form = ThreadPostForm(data=request.POST, files=request.FILES)
         if not form.is_valid():
             return render(request, 'post_error.html', {'form': form, 'board': board})
-        new_thread = form.save(commit=False)
-        new_thread.board = board
-        new_thread.text = process_post(new_thread)
-        new_thread.save()
-        return redirect(reverse('mboard:get_thread', kwargs={'thread_id': new_thread.id, 'board': board}))
+        new_post = form.save(commit=False)
+        process_post(new_post, board, new_thread, thread_id)
+        return redirect(reverse('mboard:get_thread', kwargs={'thread_id': new_post.id, 'board': board}))
     else:
         form = PostForm(data=request.POST, files=request.FILES)
         if not form.is_valid():
             return render(request, 'post_error.html', {'form': form, 'board': board})
         new_post = form.save(commit=False)
-        new_post.thread_id = thread_id
-        new_post.thread.bump = new_post.bump
-        new_post.text = process_post(new_post)
-        new_post.thread.save()
-        new_post.board = new_post.thread.board
-        new_post.save()
+        process_post(new_post, board, new_thread, thread_id)
         return redirect(
             reverse('mboard:get_thread', kwargs={'thread_id': thread_id, 'board': board}) + f'#id{new_post.id}')
 
@@ -79,17 +72,21 @@ def create_new_post(request, board, new_thread, thread_id=None):  # pure html po
 def ajax_posting(request):
     if request.POST.get('thread_id'):  # it's a post to an existing thread
         form = PostForm(data=request.POST, files=request.FILES)
+        new_thread = False
     else:  # new thread
         form = ThreadPostForm(data=request.POST, files=request.FILES)
+        new_thread = True
     if not form.is_valid():
         return JsonResponse({'errors': form.errors})
 
+    board = get_object_or_404(Board, board_link=request.POST['board'])
     new_post = form.save(commit=False)
-    if form.data.get('thread_id'):
-        new_post.thread_id = form.data['thread_id']
-    new_post.board = Board.objects.get(board_link=request.POST['board'])
-    new_post.text = process_post(new_post)
-    new_post.save()  # '.id' doesn't exist before saving
+    thread_id = form.data.get('thread_id', default=None)
+    try:
+        process_post(new_post, board, new_thread, thread_id)
+    except Exception as e:
+        print(e)
+        return JsonResponse({'errors': ['Post error']})
     new_post_id = new_post.thread_id if new_post.thread_id else new_post.id
     return JsonResponse({"postok": 'ok', 'new_post_id': new_post_id})
 
