@@ -1,2 +1,2 @@
-mboard/static/js/popper.min.js -linguist-vendored
-mboard/static/js/tippy-bundle.umd.js -linguist-vendored
+mboard/static/js/popper.min.js -linguist-vendored=true
+mboard/static/js/tippy-bundle.umd.js -linguist-vendored=true

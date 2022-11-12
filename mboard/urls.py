@@ -3,11 +3,12 @@ from django.conf.urls.static import static
 from django.urls import path
 from django.shortcuts import redirect
 from mboard.views import list_threads, get_thread, ajax_tooltips_onhover, ajax_load_new_posts, \
-    captcha_ajax_validation, ajax_posting, info_page, catalog
+    captcha_ajax_validation, ajax_posting, info_page, catalog, delete_post
 
 app_name = 'mboard'
 
 urlpatterns = [
+    path('postdel/', delete_post),
     path('<str:board>/catalog', catalog, name='catalog'),
     path('info/', info_page, name='info_page'),
     path('captcha_val/', captcha_ajax_validation),

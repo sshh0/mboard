@@ -12,10 +12,11 @@ from datetime import timedelta
 from mboard.models import Post, Board
 from .forms import PostForm, ThreadPostForm
 from django.views.decorators.cache import cache_page, never_cache
-from mboard.utils import process_post, spam_protection
+from mboard.utils import process_post, spam_protection  # noqa
+from django.contrib import messages
 
 
-@never_cache  # adds headers to response to disable browser cache
+# @never_cache  # adds headers to response to disable browser cache
 # @cache_page(3600)  # cache also resets (signals.py) after saving a new post, so it's only useful under a small load
 def list_threads(request, board, pagenum=1):
     board = get_object_or_404(Board, board_link=board)
@@ -36,7 +37,7 @@ def list_threads(request, board, pagenum=1):
     return render(request, 'list_threads.html', context)
 
 
-@never_cache
+# @never_cache
 # @cache_page(3600)
 def get_thread(request, thread_id, board):
     if request.method == 'POST':
@@ -48,26 +49,28 @@ def get_thread(request, thread_id, board):
     return render(request, 'thread.html', context)
 
 
-@spam_protection
-def create_new_post(request, board, new_thread, thread_id=None):  # pure html posting
+# @spam_protection
+def create_new_post(request, board: Board, new_thread: bool, thread_id: int = None):  # pure html posting
     if new_thread:
         form = ThreadPostForm(data=request.POST, files=request.FILES)
-        if not form.is_valid():
-            return render(request, 'post_error.html', {'form': form, 'board': board})
-        new_post = form.save(commit=False)
-        process_post(new_post, board, new_thread, thread_id)
-        return redirect(reverse('mboard:get_thread', kwargs={'thread_id': new_post.id, 'board': board}))
     else:
         form = PostForm(data=request.POST, files=request.FILES)
-        if not form.is_valid():
-            return render(request, 'post_error.html', {'form': form, 'board': board})
-        new_post = form.save(commit=False)
-        process_post(new_post, board, new_thread, thread_id)
-        return redirect(
-            reverse('mboard:get_thread', kwargs={'thread_id': thread_id, 'board': board}) + f'#id{new_post.id}')
+    if not form.is_valid():
+        return render(request, 'post_error.html', {'form': form, 'board': board})
+    new_post = form.save(commit=False)
+    try:
+        process_post(new_post, board, new_thread, thread_id, request)
+    except Exception as e:
+        print(e)
+        form.add_error(field=None, error='Posting error')  # todo translate
+        return render(request, 'post_error.html', {'form': form, 'board': board})
+    thread_id = thread_id if thread_id else new_post.id
+    append_id = '' if new_thread else f'#id{new_post.id}'
+    return redirect(
+        reverse('mboard:get_thread', kwargs={'thread_id': thread_id, 'board': board}) + append_id)
 
 
-@spam_protection
+# @spam_protection
 @require_POST
 def ajax_posting(request):
     if request.POST.get('thread_id'):  # it's a post to an existing thread
@@ -83,12 +86,33 @@ def ajax_posting(request):
     new_post = form.save(commit=False)
     thread_id = form.data.get('thread_id', default=None)
     try:
-        process_post(new_post, board, new_thread, thread_id)
+        process_post(new_post, board, new_thread, thread_id, request)
     except Exception as e:
         print(e)
-        return JsonResponse({'errors': ['Post error']})
+        return JsonResponse({'errors': ['Posting error']})  # todo translate
     new_post_id = new_post.thread_id if new_post.thread_id else new_post.id
     return JsonResponse({"postok": 'ok', 'new_post_id': new_post_id})
+
+
+@require_POST
+def delete_post(request):
+    try:
+        post = Post.objects.get(pk=request.POST.get('post-id'))  # todo many posts???
+        if request.POST.get('del-pass', None) == settings.MOD_PASS:
+            messages.success(request, f'Deleted {post.pk}')
+            post.delete()
+        else:
+            try:
+                assert post.cookie == request.session.session_key, _('Incorrect password')
+                assert timezone.now() <= post.date + timedelta(minutes=15), _('You cannot delete a post this old')
+                assert post.thread is not None, _('You cannot delete a thread')
+                post.delete()
+            except (AssertionError, Exception) as e:
+                messages.error(request, e)
+    except Post.DoesNotExist:
+        messages.error(request, _("The post doesn't exist"))  # todo IN JS
+    finally:
+        return redirect(request.META['HTTP_REFERER'])
 
 
 def ajax_tooltips_onhover(request, thread_id, **kwargs):
@@ -118,6 +142,7 @@ def get_new_posts(request, thread):
             html_rendered_string += render_to_string(request=request, template_name='post.html',
                                                      context={'post': post, 'thread': thread, 'posts_ids': posts_ids})
         return JsonResponse(html_rendered_string, safe=False)
+    return HttpResponse(status=304)
 
 
 def random_digit_challenge():
@@ -147,7 +172,7 @@ def info_page(request):
              'bcount': Board.objects.count(),
              'posts': Post.objects.order_by('-date')[:20]}
         )
-    except Exception:  # noqa
+    except Exception:
         pass
     finally:
         return render(request, 'info_page.html', context)

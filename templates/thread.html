@@ -7,19 +7,23 @@
       <a href="#bottom">{% translate 'Bottom' %}</a>
     </div>
     <hr>
-    <section class="thread" data-threadid="{{ thread.pk }}">
-      {% include 'OPpost.html' %}
-      {% for post in thread.post_set.all %}
-        {% include 'post.html' %}
-      {% endfor %}
-    </section>
-    <hr>
-    <div class="navdiv-bottom">
-      <a href="../../">{% translate 'Back' %}</a>
-      <a href="#top">{% translate 'Top' %}</a>
-      <a id="js-fetch-new-posts">{% translate 'Update' %}</a>
-      <span hidden id="fetchStatus">{% translate 'No new posts' %}</span>
-    </div>
+    <form id="del-form" method="post" action="/postdel/">
+      <section class="thread" data-threadid="{{ thread.pk }}">
+        {% include 'OPpost.html' %}
+        {% for post in thread.post_set.all %}
+          {% include 'post.html' %}
+        {% endfor %}
+      </section>
+      <hr>
+      <div class="navdiv-bottom">
+        <a href="../../">{% translate 'Back' %}</a>
+        <a href="#top">{% translate 'Top' %}</a>
+        <a id="js-fetch-new-posts">{% translate 'Update' %}</a>
+        <span hidden id="fetchStatus">{% translate 'No new posts' %}</span>
+        <button id="del-btn" type="submit">{% translate 'Delete' %}</button>
+        <input id="del-pass" name="del-pass">
+      </div>
+    </form>
     {% translate 'Reply' as btn %}
     {% include 'postform.html' with postformbutton=btn %}
     {% include 'quickpostform.html' %}

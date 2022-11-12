@@ -8,6 +8,7 @@
       <a href="{% url 'mboard:catalog' board %}">{% translate 'Catalog' %}</a>
     </div>
     <hr>
+    <form id="del-form" method="post" action="/postdel/">
     {% for thread, posts in threads.items %}
       <section class="thread" data-threadid="{{ thread.pk }}">
         {% include 'OPpost.html' %}
@@ -18,6 +19,9 @@
       <div class="postcount">{% translate 'Posts in the thread:' %} {{ thread.post_set.all|length|add:1 }}</div>
       <hr>
     {% endfor %}
+      <button id="del-btn" type="submit">{% translate 'Delete' %}</button>
+      <input id="del-pass" name="del-pass">
+    </form>
     <br>
     {% include 'pagination.html' %}
     {% include 'quickpostform.html' %}

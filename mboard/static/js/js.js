@@ -7,7 +7,7 @@ const postsLinks = $$('.post .postHeader .postLink, .opPost > .opPostHeader .pos
 const quickPostFormTextArea = document.querySelector('#quickPostForm > textarea');
 const postForm = document.getElementById('postForm');
 
-for (let f of document.getElementsByTagName('form')) f.addEventListener('submit', submitForm);
+for (let f of $$('#postForm, #quickPostForm')) f.addEventListener('submit', submitForm);
 
 $$('.clear-file-btn').forEach((btn) => btn.addEventListener('click', function (ev) {
     ev.target.previousElementSibling.value = '';

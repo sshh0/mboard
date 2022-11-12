@@ -1,10 +1,12 @@
 {% load extra %}
 <article data-id="{{ post.pk }}" id="id{{ post.pk }}" class="post">
-  <div class="postHeader">{{ post.poster }}
+  <div class="postHeader">
+    <input type="checkbox" name="post-id" value="{{ post.pk }}">
+    {{ post.poster }}
     <span class="date" data-unixtime="{{ post.date|date:"U" }}">{{ post.date|date:'d/m/Y, H:i:s' }}</span>
     №:<a class="postLink" href="{{ thread.get_absolute_url }}#id{{ post.pk }}">{{ post.pk }}</a>
   </div>
-  {% if post.video_thumb %}
+  {% if post.video_thumb and post.video.file %}
     <div class="video-link">
       <a target="_blank" href="{{ post.video.url }}">{{ post.video.name|strippath|truncatechars:33 }}</a>
       ({{ post.video.size|filesizeformat }})
@@ -15,7 +17,7 @@
       </a>
     </div>
   {% endif %}
-  {% if post.thumbnail %}
+  {% if post.thumbnail and post.image.file %}
     <div class="imglink">
       <a target="_blank" href="{{post.image.url}}">
         {{ post.image.name|strippath|truncatechars:33 }}

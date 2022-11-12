@@ -7,6 +7,8 @@ dotenv_config = dotenv_values(".env")
 
 SECRET_KEY = dotenv_config['SECRET_KEY']
 
+MOD_PASS = dotenv_config['MOD_PASS']  # moderation password
+
 DEBUG = True
 
 #  if this's turned on, POST requests will require validation from the getipintel.net service for determining
@@ -17,6 +19,8 @@ EMAIL = dotenv_config['EMAIL']  # queries to getipintel.net service require emai
 ALLOWED_HOSTS = dotenv_config['ALLOWED_HOSTS'].split()
 
 APPEND_SLASH = True
+
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 365  # ~ 1 year
 
 # CAPTCHA_LENGTH = '6'
 CAPTCHA_FONT_SIZE = 27
@@ -54,7 +58,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'mboard.apps.MboardConfig',
     'captcha',
     'precise_bbcode',
@@ -65,7 +68,7 @@ MIDDLEWARE = [
     # "debug_toolbar.middleware.DebugToolbarMiddleware",
     # 'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.http.ConditionalGetMiddleware',
-    # 'django.middleware.security.SecurityMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -85,7 +88,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.debug',
+                # 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',

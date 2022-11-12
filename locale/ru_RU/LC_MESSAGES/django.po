@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-06 12:14+0300\n"
+"POT-Creation-Date: 2022-11-12 20:26+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,7 +21,7 @@ msgstr ""
 msgid "Anon"
 msgstr "Анон"
 
-#: mboard/forms.py:19 mboard/views.py:136
+#: mboard/forms.py:19 mboard/views.py:158
 msgid "Invalid captcha"
 msgstr "Неверная капча"
 
@@ -49,12 +49,28 @@ msgstr "Только webm/mp4"
 msgid "File format not allowed"
 msgstr "Недопустимый формат"
 
-#: templates/OPpost.html:10
+#: mboard/views.py:106
+msgid "Incorrect password"
+msgstr "Неверный пароль"
+
+#: mboard/views.py:107
+msgid "You cannot delete a post this old"
+msgstr "Время для удаления истекло"
+
+#: mboard/views.py:108
+msgid "You cannot delete a thread"
+msgstr "Нельзя удалять тред"
+
+#: mboard/views.py:113
+msgid "The post doesn't exist"
+msgstr "Несуществующий пост"
+
+#: templates/OPpost.html:11
 msgctxt "into thread"
 msgid "Reply"
 msgstr "В тред"
 
-#: templates/header.html:7
+#: templates/header.html:11
 msgid "Statistics"
 msgstr "Статистика"
 
@@ -106,9 +122,13 @@ msgstr "Новый тред"
 msgid "Catalog"
 msgstr "Каталог"
 
-#: templates/list_threads.html:18
+#: templates/list_threads.html:19
 msgid "Posts in the thread:"
 msgstr "Всего постов:"
+
+#: templates/list_threads.html:22 templates/thread.html:23
+msgid "Delete"
+msgstr "Удалить"
 
 #: templates/post_error.html:8 templates/postform.html:8
 #: templates/quickpostform.html:12
@@ -123,7 +143,7 @@ msgstr "Ошибка в капче"
 msgid "Reply to the thread"
 msgstr "Ответить в тред"
 
-#: templates/thread.html:6 templates/thread.html:18
+#: templates/thread.html:6 templates/thread.html:19
 msgid "Back"
 msgstr "Назад"
 
@@ -131,22 +151,18 @@ msgstr "Назад"
 msgid "Bottom"
 msgstr "Вниз"
 
-#: templates/thread.html:19
+#: templates/thread.html:20
 msgid "Top"
 msgstr "Вверх"
 
-#: templates/thread.html:20
+#: templates/thread.html:21
 msgid "Update"
 msgstr "Обновить"
 
-#: templates/thread.html:21
+#: templates/thread.html:22
 msgid "No new posts"
 msgstr "Нет новых постов"
 
-#: templates/thread.html:23
+#: templates/thread.html:27
 msgid "Reply"
 msgstr "Ответить"
-
-#: templates/header.html:10
-msgid "Random"
-msgstr "Бред"

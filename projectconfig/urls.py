@@ -5,6 +5,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
     path('', include('mboard.urls')),
     path('captcha/', include('captcha.urls')),
     # path('robots.txt', lambda x: HttpResponse("User-Agent: *\nDisallow: /", content_type="text/plain")),

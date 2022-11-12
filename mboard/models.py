@@ -12,6 +12,7 @@ class Post(models.Model):
     video_thumb = models.ImageField(upload_to='post/videos/thumbs', blank=True)
     bump = models.DateTimeField(auto_now=True)
     board = models.ForeignKey('Board', on_delete=models.CASCADE, null=False, blank=False)
+    cookie = models.CharField(null=True, max_length=40)
 
     def __str__(self):
         return str(self.pk)

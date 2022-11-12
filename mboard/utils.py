@@ -1,28 +1,44 @@
 import re
 from django.utils.html import escape
-from django.utils.safestring import mark_safe
-from mboard.models import Post
+from mboard.models import Post, Board
 from precise_bbcode.bbcode import get_parser
 import random
 from urllib.request import urlopen
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
+from django.contrib.sessions.models import Session
 
 
-def process_post(new_post):
+def process_post(new_post: Post, board: Board, new_thread: bool, thread_id, request):
+    if new_thread:  # new thread
+        new_post.board = board
+    else:  # new post
+        new_post.thread_id = int(thread_id)
+        new_post.thread.bump = new_post.bump
+        new_post.board = new_post.thread.board
+
     new_post.text = escape(new_post.text)
     new_post.text = insert_links(new_post.text, new_post)
     new_post.text = color_quoted_text(new_post.text)
     parser = get_parser()
     new_post.text = parser.render(new_post.text)
     new_post.text = roll_game(new_post.text)
-    return mark_safe(new_post.text)
+    link_cookie_to_post(new_post, request)
+    new_post.save()
+
+
+def link_cookie_to_post(new_post, request):
+    try:
+        Session.objects.get(session_key=request.session.session_key)
+    except Session.DoesNotExist:  # new session or user has key not present in db
+        request.session.create()
+    new_post.cookie = request.session.session_key
 
 
 def color_quoted_text(post_string):
     quoted_text = re.findall(r'^\s*&gt;.+', post_string, flags=re.MULTILINE)  # '^\s*&gt;[^&gt;].+'
     if quoted_text:
-        span = "<span style='color:#c2ad70'>{index}</span>"
+        span = "<span class='quoted-text'>{index}</span>"
         for count, index in enumerate(quoted_text):
             post_string = post_string.replace(index, span.format(index=index.strip()))
     return post_string

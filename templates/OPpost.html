@@ -3,13 +3,14 @@
 <article class="opPost" id="id{{ thread.pk }}" data-id="{{ thread.pk }}">
   <div class="opPostHeader">
     <span>
+      <input type="checkbox" name="post-id" value="{{ thread.pk }}">
       <span class="poster"> {{ thread.poster }}</span>
       <span class="date" data-unixtime="{{ thread.date|date:"U" }}">{{ thread.date|date:'d/m/Y, H:i:s' }}</span>
       №:<a class="postLink" href="#id{{ thread.pk }}">{{ thread.pk }}</a>
     </span>
     <a class="threadlink" href="{{ thread.get_absolute_url }}">{% translate 'Reply' context 'into thread' %}</a>
   </div>
-  {% if thread.video_thumb %}
+  {% if thread.video_thumb and thread.video.file %}
     <div class="video-link">
       <a target="_blank" href="{{ thread.video.url }}">{{ thread.video.name|strippath|truncatechars:33 }}</a>
       ({{ thread.video.size|filesizeformat }})
@@ -20,7 +21,7 @@
       </a>
     </div>
   {% endif %}
-  {% if thread.thumbnail %}
+  {% if thread.thumbnail and thread.image.file %}
     <div class="imglink">
       <a target="_blank" href="{{ thread.image.url }}">{{ thread.image.name|strippath|truncatechars:33 }}</a>
       ({{ thread.image.size|filesizeformat }})
@@ -33,6 +34,6 @@
   {% endif %}
   <div class="text">
     {{ thread.text|safe }}
-    <div class="replies"></div>
   </div>
+  <div class="replies"></div>
 </article>
