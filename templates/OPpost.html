@@ -3,7 +3,7 @@
 <article class="opPost" id="id{{ thread.pk }}" data-id="{{ thread.pk }}">
   <div class="opPostHeader">
     <span>
-      <input type="checkbox" name="post-id" value="{{ thread.pk }}">
+      <input class="post-checkbox" type="checkbox" name="post-id" value="{{ thread.pk }}">
       <span class="poster"> {{ thread.poster }}</span>
       <span class="date" data-unixtime="{{ thread.date|date:"U" }}">{{ thread.date|date:'d/m/Y, H:i:s' }}</span>
       №:<a class="postLink" href="#id{{ thread.pk }}">{{ thread.pk }}</a>

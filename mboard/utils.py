@@ -10,10 +10,14 @@ from django.contrib.sessions.models import Session
 
 
 def process_post(new_post: Post, board: Board, new_thread: bool, thread_id, request):
+    if board.closed:
+        raise Exception('closed')
     if new_thread:  # new thread
         new_post.board = board
     else:  # new post
         new_post.thread_id = int(thread_id)
+        if new_post.thread.closed:
+            raise Exception('closed')
         new_post.thread.bump = new_post.bump
         new_post.board = new_post.thread.board
 

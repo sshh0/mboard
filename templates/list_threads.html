@@ -1,9 +1,12 @@
 {% extends '_base.html' %}
 {% load i18n %}
 {% block content %}
-  <div class="container threadList">
+  <div class="threadList">
     {% translate 'New thread' as btn %}
-    {% include 'postform.html' with postformbutton=btn %}
+    {% if not board.closed %}
+      {% include 'quickpostform.html' %}
+      {% include 'postform.html' with postformbutton=btn %}
+    {% endif %}
     <div id="catalog">
       <a href="{% url 'mboard:catalog' board %}">{% translate 'Catalog' %}</a>
     </div>
@@ -24,6 +27,5 @@
     </form>
     <br>
     {% include 'pagination.html' %}
-    {% include 'quickpostform.html' %}
   </div>
 {% endblock content %}

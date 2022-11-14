@@ -11,13 +11,11 @@ from django.utils.translation import gettext as _
 from datetime import timedelta
 from mboard.models import Post, Board
 from .forms import PostForm, ThreadPostForm
-from django.views.decorators.cache import cache_page, never_cache
+from django.views.decorators.cache import cache_page
 from mboard.utils import process_post, spam_protection  # noqa
 from django.contrib import messages
 
 
-# @never_cache  # adds headers to response to disable browser cache
-# @cache_page(3600)  # cache also resets (signals.py) after saving a new post, so it's only useful under a small load
 def list_threads(request, board, pagenum=1):
     board = get_object_or_404(Board, board_link=board)
     if request.method == 'POST':
@@ -37,12 +35,10 @@ def list_threads(request, board, pagenum=1):
     return render(request, 'list_threads.html', context)
 
 
-# @never_cache
-# @cache_page(3600)
 def get_thread(request, thread_id, board):
+    board = get_object_or_404(Board, board_link=board)
     if request.method == 'POST':
         return create_new_post(request, board, new_thread=False, thread_id=thread_id)
-    board = get_object_or_404(Board, board_link=board)
     thread = get_object_or_404(Post, pk=thread_id)
     form = PostForm(initial={'thread_id': thread_id})
     context = {'thread': thread, 'posts_ids': {thread.pk: thread.posts_ids()}, 'form': form, 'board': board}
@@ -110,7 +106,7 @@ def delete_post(request):
             except (AssertionError, Exception) as e:
                 messages.error(request, e)
     except Post.DoesNotExist:
-        messages.error(request, _("The post doesn't exist"))  # todo IN JS
+        messages.error(request, _("The post doesn't exist"))
     finally:
         return redirect(request.META['HTTP_REFERER'])
 
@@ -178,7 +174,6 @@ def info_page(request):
         return render(request, 'info_page.html', context)
 
 
-@cache_page(3600)
 def catalog(request, board):
     board = get_object_or_404(Board, board_link=board)
     threads = board.post_set.filter(thread__isnull=True).order_by('-bump')[:50]

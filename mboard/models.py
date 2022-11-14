@@ -13,6 +13,7 @@ class Post(models.Model):
     bump = models.DateTimeField(auto_now=True)
     board = models.ForeignKey('Board', on_delete=models.CASCADE, null=False, blank=False)
     cookie = models.CharField(null=True, max_length=40)
+    closed = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.pk)
@@ -32,6 +33,7 @@ class Post(models.Model):
 class Board(models.Model):
     board_link = models.CharField(max_length=5, blank=False, null=False)
     board_title = models.CharField(max_length=20, blank=False, null=False)
+    closed = models.BooleanField(default=False)
 
     def __str__(self):
         return self.board_link

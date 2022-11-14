@@ -21,18 +21,11 @@
 </head>
 <body>
 {% include 'header.html' %}
-{% if messages %}
-  <ul class="messages">
-    {% for message in messages %}
-      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-    {% endfor %}
-  </ul>
-{% endif %}
-{% for field, error in form.errors.items %}
-  <div class="errorlist">{{ error.as_text }}</div>
-{% endfor %}
-{% block content %}
-{% endblock content %}
+{% include 'errors.html' %}
+<div class="container">
+  {% block content %}
+  {% endblock content %}
+</div>
 <div id="foreground-div"></div>
 {% include 'footer.html' %}
 <script src="{% static 'js/popper.min.js' %}"></script>
