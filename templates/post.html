@@ -1,7 +1,7 @@
 {% load extra %}
 <article data-id="{{ post.pk }}" id="id{{ post.pk }}" class="post">
   <div class="postHeader">
-    <input type="checkbox" name="post-id" value="{{ post.pk }}">
+    <input class="post-checkbox" type="checkbox" name="post-id" value="{{ post.pk }}">
     {{ post.poster }}
     <span class="date" data-unixtime="{{ post.date|date:"U" }}">{{ post.date|date:'d/m/Y, H:i:s' }}</span>
     №:<a class="postLink" href="{{ thread.get_absolute_url }}#id{{ post.pk }}">{{ post.pk }}</a>

@@ -1,5 +1,5 @@
+{% extends '_base.html' %}
 {% load i18n %}
-{% include '_base.html' %}
 {% block content %}
   <ul style="text-align: center; display: inline; font-size: 15px; font-family: monospace">
     <li>{% translate 'Posts today:' %} {{ plast24h }}</li>
@@ -9,7 +9,6 @@
     <li>{% translate 'First post: ' %} {{ firstp_date|date:'d/m/Y, H:i' }}</li>
     <li>{% translate 'Last post: ' %} {{ lastp_date|date:'d/m/Y, H:i' }}</li>
   </ul>
-
   <table>
     <tbody>
     <tr>
@@ -28,8 +27,4 @@
     {% endfor %}
     </tbody>
   </table>
-
-
-
-
-{% endblock %}
+{% endblock content %}

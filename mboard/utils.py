@@ -1,21 +1,23 @@
-import re
+import re, random
 from django.utils.html import escape
 from mboard.models import Post, Board
 from precise_bbcode.bbcode import get_parser
-import random
 from urllib.request import urlopen
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
 from django.contrib.sessions.models import Session
 
 
-def process_post(new_post: Post, board: Board, new_thread: bool, thread_id, request):
+def process_post(request, new_post: Post, board: Board, new_thread: bool, thread_id=None):
     if new_thread:  # new thread
         new_post.board = board
     else:  # new post
         new_post.thread_id = int(thread_id)
         new_post.thread.bump = new_post.bump
         new_post.board = new_post.thread.board
+
+    if board.closed or (new_thread is False and new_post.thread.closed):  # this check must be after
+        raise Exception('closed')  # 'new_post.thread_id = int(thread_id)', otherwise new_post.thread is None
 
     new_post.text = escape(new_post.text)
     new_post.text = insert_links(new_post.text, new_post)

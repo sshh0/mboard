@@ -7,8 +7,6 @@ const postsLinks = $$('.post .postHeader .postLink, .opPost > .opPostHeader .pos
 const quickPostFormTextArea = document.querySelector('#quickPostForm > textarea');
 const postForm = document.getElementById('postForm');
 
-for (let f of $$('#postForm, #quickPostForm')) f.addEventListener('submit', submitForm);
-
 $$('.clear-file-btn').forEach((btn) => btn.addEventListener('click', function (ev) {
     ev.target.previousElementSibling.value = '';
     btn.style.visibility = 'hidden';
@@ -21,12 +19,15 @@ $$('#id_file').forEach(function (file) {
 captchaRefresh();
 
 if ($('.threadList,.threadPage')) { // at least one class ("OR")
-    showQuickPostForm();
-    drag_elmnt(document.getElementById("quickPostHeader"));
+    if (quickPostForm) {
+        showQuickPostForm();
+        drag_elmnt(document.getElementById("quickPostHeader"));
+    }
     ApplyJsOnFetchedElements();
     addRepliesToPost();
     altEnterFormSubmit();
     insertEmbedVideoButton();
+    for (let f of $$('#postForm, #quickPostForm')) f.addEventListener('submit', submitForm);
     $$('.image').forEach((image) => image.addEventListener('click', expandImage));
     $$('.video-thumb').forEach((video) => video.addEventListener('click', expandVideo));
     document.addEventListener('mouseover', function (ev) {
@@ -50,6 +51,11 @@ if ($('.threadList,.threadPage')) { // at least one class ("OR")
         $$('.quote, .reply').forEach((elmnt) => elmnt.addEventListener('click', onClick));
     }
     if ($$('.page-link').length === 1) $('.page-link').hidden = true;
+
+    document.getElementById('del-btn').addEventListener('click', (ev) => {
+        ev.preventDefault();
+        for (let el of $$('.post-checkbox')) if (el.checked) ev.target.closest('form').submit();
+    });
 }
 
 function changeTheme(elmnt) {
@@ -122,7 +128,7 @@ function markUpBtn(btn, tagStart, tagEnd) {
 
 function truncateLongPosts() {
     for (let t of document.getElementsByClassName('text')) {
-        if (t.textContent.length > 1500) {
+        if (t.textContent.length > 2500) {
             const span = document.createElement('span');
             span.className = 'func-btn';
             span.innerText = ' ……[⤡]';
@@ -432,7 +438,7 @@ function mouseWheelChangeSize(ev) {
 function resizeImg(imgWidth, imgHeight, maxWidth, maxHeight) {
     let ratio = Math.min(1, maxWidth / imgWidth, maxHeight / imgHeight);
     let w = imgWidth * ratio + 'px';
-    let h  = imgHeight * ratio + 'px';
+    let h = imgHeight * ratio + 'px';
     return [w, h];
 }
 
@@ -493,12 +499,12 @@ function handleEvent(ev) {
 }
 
 function showQuickPostForm() {
-    quickPostForm.elements['id_file'].required = false;
-    postsLinks.forEach((link) => link.addEventListener('click', setTextValue));
-    document.getElementById('closebutton').addEventListener('click', () => {
-        quickPostForm.hidden = true;
-        quickPostFormTextArea.value = '';
-    });
+        quickPostForm.elements['id_file'].required = false;
+        postsLinks.forEach((link) => link.addEventListener('click', setTextValue));
+        document.getElementById('closebutton').addEventListener('click', () => {
+            quickPostForm.hidden = true;
+            quickPostFormTextArea.value = '';
+        });
 }
 
 function setTextValue(ev) {

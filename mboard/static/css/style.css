@@ -24,17 +24,15 @@
 
 body {
     background: var(--bg-color);
-    /*min-height: 100vh;*/
     margin: 0;
     color: var(--body-clr);
-
 }
 
 .post {
     display: table;
     background: var(--post-bg);
     border: var(--post-border);
-    padding: 10px;
+    padding: 5px;
     margin-top: 15px;
 }
 
@@ -61,8 +59,9 @@ body {
     overflow: auto;
     word-wrap: anywhere;
     max-height: 600px;
-    margin-inline-start: 20px;
+    margin-inline-start: 40px;
     margin-inline-end: 20px;
+    margin-top: 10px;
 }
 
 .thread {
@@ -246,19 +245,19 @@ hr {
 
 .replies {
     margin-top: 10px;
-    margin-inline-start: 20px;
+    margin-inline-start: 40px;
 }
 
 .page-link {
     font-size: large;
 }
 
-.spoiler {
+.spoiler, .spoiler a{
     background-color: black;
     color: black;
 }
 
-.spoiler:hover {
+.spoiler:hover, .spoiler a:hover {
     color: white;
 }
 
@@ -503,4 +502,3 @@ input[type="checkbox"] {
     float: right;
     margin-right: 10px
 }
-

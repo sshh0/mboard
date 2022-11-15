@@ -2,7 +2,7 @@
 
 from django.db import migrations
 
-boards = {'b': 'Random', 'test': 'test', 'int': 'International'}
+boards = {'b': '/b', 'test': 'test', 'int': 'International'}
 
 bbcodetags = {  # key should be == value[0]; 's'=='s', 'i'=='i'...
     'spoiler': [
