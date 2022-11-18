@@ -14,11 +14,13 @@ Simple imageboard written in Python/Django
 - Interface in English/Russian depending on browser language
 
 #### Dependecies:
+- Python 3.8+
+- Django 4.1
 - django-simple-captcha
-- python-dotenv: for storing SECRET_KEY, ALLOWED_HOSTS without exposing them
-- python-magic: file uploading validation
-- Pillow: thumbnails creation
-- django-precise-bbcode: BB code tags: [spoiler][/spoiler], [b][/b], [s][/s]...
+- python-dotenv
+- python-magic
+- Pillow
+- django-precise-bbcode
 - FFmpeg
 
 #### Installation:
@@ -26,6 +28,8 @@ Simple imageboard written in Python/Django
 pip install -r requirements.txt
 
 python manage.py migrate
+
+rename ".env.example" to ".env" in the root dir
 ```   
 
 
@@ -39,3 +43,4 @@ python manage.py runserver
 DEBUG = False in projectconfig/settings.py
 - Admin panel is available at /admin/ (run 'createsuperuser' command to create an admin user)  
 - Uploading video files requires [FFmpeg](https://ffmpeg.org/) to be installed and present on the PATH variable.
+- Post deletion password is specified in the "MOD_PASS" variable in .env file

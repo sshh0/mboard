@@ -30,28 +30,21 @@ class PostForm(forms.ModelForm):  # fields defined declaratively do not draw the
                 raise forms.ValidationError(_('Enter the message'))
 
     def clean_file(self):
-        if self.cleaned_data['file']:
-            file = self.cleaned_data['file']
+        if file := self.cleaned_data['file']:
             mime_type = from_buffer(file.read(), mime=True)
             if 'image' in mime_type:
-                if file.size > 1 * 1024 * 1024:
-                    raise forms.ValidationError(_('Image size > 1 MB'))
+                if file.size > 2 * 1024 * 1024:
+                    raise forms.ValidationError(_('Image size > 2 MB'))
                 self.instance.image = self.files['file']
                 self.instance.thumbnail = make_thumbnail(self.files['file'])
-            elif 'video' in mime_type:
-                if 'webm' in mime_type or 'mp4' in mime_type:
-                    if file.size > 5 * 1024 * 1024:
-                        raise forms.ValidationError(_('Video size > 5 MB'))
-                    args = ['ffmpeg', '-i', 'pipe:0', '-ss', '00:00:01', '-vf', 'scale=150:120',
-                            '-vframes', '1', '-f', 'image2pipe', '-c', 'mjpeg', 'pipe:1', '-loglevel', 'quiet']
-                    file.seek(0)
-                    process = subprocess.run(args, input=file.read(), stdout=subprocess.PIPE)
-                    if process.returncode != 0:
-                        raise forms.ValidationError(_('File uploading error'))
-                    self.instance.video = self.files['file']
-                    self.instance.video_thumb = ContentFile(content=process.stdout, name=Path(file.name).stem + '.jpg')
-                else:
-                    raise forms.ValidationError(_('Only webm/mp4'))
+            elif 'webm' in mime_type or 'mp4' in mime_type:
+                if file.size > 6 * 1024 * 1024:
+                    raise forms.ValidationError(_('Video size > 6 MB'))
+                process = run_ffmpeg(file)
+                if process.returncode != 0:
+                    raise forms.ValidationError(_('File uploading error'))
+                self.instance.video = self.files['file']
+                self.instance.video_thumb = ContentFile(content=process.stdout, name=Path(file.name).stem + '.jpg')
             else:
                 raise forms.ValidationError(_('File format not allowed'))
             return file  # "Always return a value to use as the new cleaned data, even if this method didn't change it"
@@ -69,3 +62,11 @@ def make_thumbnail(inmemory_image):
     output.seek(0)
     thumb = ContentFile(output.read(), name='thumb_' + inmemory_image.name)
     return thumb
+
+
+def run_ffmpeg(file):
+    args = ['ffmpeg', '-i', 'pipe:0', '-ss', '00:00:01', '-vf', 'scale=150:120',
+            '-vframes', '1', '-f', 'image2pipe', '-c', 'mjpeg', 'pipe:1', '-loglevel', 'quiet']
+    file.seek(0)
+    process = subprocess.run(args, input=file.read(), stdout=subprocess.PIPE)
+    return process

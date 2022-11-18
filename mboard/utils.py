@@ -42,7 +42,7 @@ def color_quoted_text(post_string):
     if quoted_text:
         span = "<span class='quoted-text'>{index}</span>"
         for count, index in enumerate(quoted_text):
-            post_string = post_string.replace(index, span.format(index=index.strip()))
+            post_string = post_string.replace(index, span.format(index=index.strip().replace('&gt;', '>')))
     return post_string
 
 

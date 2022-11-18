@@ -7,7 +7,7 @@
   <link id="theme" href="{% static 'css/kovrach.css' %}" rel="stylesheet">
   <link href="{% static 'css/style.css' %}" rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="{% static 'favicon.png' %}">
-  <title>{{ thread.text|default:board|truncatechars:50 }}</title>
+  <title>{{ thread.text|striptags|default:board|truncatechars:50 }}</title>
   <script>
       if (!localStorage.getItem('theme')) {
           localStorage.setItem('theme', 'kovrach');

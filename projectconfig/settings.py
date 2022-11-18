@@ -11,9 +11,8 @@ MOD_PASS = dotenv_config['MOD_PASS']  # moderation password
 
 DEBUG = True
 
-#  if this's turned on, POST requests will require validation from the getipintel.net service for determining
-#  suspicious IPs (VPN/proxy). If a POST request client's ip is marked as such, the request will be aborted
-PREVENT_SPAM = False
+PREVENT_SPAM = False  # getipintel.net service suspicious ip spam check
+
 EMAIL = dotenv_config['EMAIL']  # queries to getipintel.net service require email to be included
 
 ALLOWED_HOSTS = dotenv_config['ALLOWED_HOSTS'].split()
@@ -99,7 +98,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'projectconfig.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
@@ -127,7 +125,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/

@@ -12,7 +12,7 @@ from datetime import timedelta
 from mboard.models import Post, Board
 from .forms import PostForm, ThreadPostForm
 from django.views.decorators.cache import cache_page
-from mboard.utils import process_post, spam_protection  # noqa
+from mboard.utils import process_post
 from django.contrib import messages
 
 
@@ -21,16 +21,13 @@ def list_threads(request, board, pagenum=1):
     if request.method == 'POST':
         return create_new_post(request, board, new_thread=True)
     form = ThreadPostForm()
-    threads = board.post_set.all().filter(thread__isnull=True).order_by('-bump')
-    threads_dict, posts_ids = {}, {}
+    threads = board.post_set.filter(thread__isnull=True).order_by('-bump')
     paginator = Paginator(threads, 10)
     try:
         threads = paginator.page(number=pagenum)
     except InvalidPage:
         return redirect(reverse('mboard:list_threads', kwargs={'board': board}))
-    for thread in threads:
-        posts_to_display = thread.post_set.all().order_by('-date')[:4]
-        threads_dict[thread] = reversed(posts_to_display)
+    threads_dict = {thread: thread.post_set.order_by('-date')[:4][::-1] for thread in threads}
     context = {'threads': threads_dict, 'form': form, 'paginator': paginator, 'page_obj': threads, 'board': board}
     return render(request, 'list_threads.html', context)
 
@@ -41,11 +38,10 @@ def get_thread(request, thread_id, board):
         return create_new_post(request, board, new_thread=False, thread_id=thread_id)
     thread = get_object_or_404(Post, pk=thread_id)
     form = PostForm(initial={'thread_id': thread_id})
-    context = {'thread': thread, 'posts_ids': {thread.pk: thread.posts_ids()}, 'form': form, 'board': board}
+    context = {'thread': thread, 'form': form, 'board': board}
     return render(request, 'thread.html', context)
 
 
-# @spam_protection
 def create_new_post(request, board: Board, new_thread: bool, thread_id: int = None):  # pure html posting
     if new_thread:
         form = ThreadPostForm(data=request.POST, files=request.FILES)
@@ -56,9 +52,8 @@ def create_new_post(request, board: Board, new_thread: bool, thread_id: int = No
     new_post = form.save(commit=False)
     try:
         process_post(request, new_post, board, new_thread, thread_id)
-    except Exception as e:
-        print(e)
-        form.add_error(field=None, error='Posting error')  # todo translate
+    except Exception:
+        form.add_error(field=None, error='Posting error')  # TODO translate
         return render(request, 'post_error.html', {'form': form, 'board': board})
     thread_id = thread_id if thread_id else new_post.id
     append_id = '' if new_thread else f'#id{new_post.id}'
@@ -66,7 +61,6 @@ def create_new_post(request, board: Board, new_thread: bool, thread_id: int = No
         reverse('mboard:get_thread', kwargs={'thread_id': thread_id, 'board': board}) + append_id)
 
 
-# @spam_protection
 @require_POST
 def ajax_posting(request):
     if request.POST.get('thread_id'):  # it's a post to an existing thread
@@ -83,8 +77,7 @@ def ajax_posting(request):
     thread_id = form.data.get('thread_id', default=None)
     try:
         process_post(request, new_post, board, new_thread, thread_id)
-    except Exception as e:
-        print(e)
+    except Exception:
         return JsonResponse({'errors': ['Posting error']})  # todo translate
     new_post_id = new_post.thread_id if new_post.thread_id else new_post.id
     return JsonResponse({"postok": 'ok', 'new_post_id': new_post_id})
@@ -93,7 +86,7 @@ def ajax_posting(request):
 @require_POST
 def delete_post(request):
     try:
-        post = Post.objects.get(pk=request.POST.get('post-id'))  # todo many posts???
+        post = Post.objects.get(pk=request.POST.get('post-id'))  # TODO many posts???
         if request.POST.get('del-pass', None) == settings.MOD_PASS:
             messages.success(request, f'Deleted {post.pk}')
             post.delete()
@@ -111,32 +104,25 @@ def delete_post(request):
         return redirect(request.META['HTTP_REFERER'])
 
 
-def ajax_tooltips_onhover(request, thread_id, **kwargs):
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and 'post_id' in kwargs:
-        post = Post.objects.get(pk=kwargs['post_id'])
-        thread = Post.objects.get(pk=thread_id)
-        post_ids = {thread.pk: thread.posts_ids()}
-        jsn = render_to_string('post.html',
-                               {'post': post, 'thread': thread, 'posts_ids': post_ids}, request)
-        return JsonResponse(jsn, safe=False)
-    return HttpResponse(status=404)
+def ajax_tooltips_onhover(request, **kwargs):
+    post = get_object_or_404(Post, pk=kwargs['post_id'])
+    json_html = render_to_string('post.html', {'post': post}, request)
+    return JsonResponse(json_html, safe=False)
 
 
 @last_modified(lambda request, thread_id, **kwargs: Post.objects.get(pk=thread_id).bump)
 def ajax_load_new_posts(request, thread_id, **kwargs):  # don't proceed if no new posts, return 304 response
-    thread = Post.objects.get(pk=thread_id)
+    thread = get_object_or_404(Post, pk=thread_id)
     return get_new_posts(request, thread)
 
 
 def get_new_posts(request, thread):
     last_post_date = parsedate_to_datetime(request.headers['If-Modified-Since'])
-    posts = thread.post_set.all().filter(date__gt=last_post_date)
-    posts_ids = {thread.pk: thread.posts_ids()}
+    posts = thread.post_set.filter(date__gt=last_post_date)
     html_rendered_string = ''
     if posts:
         for post in posts:
-            html_rendered_string += render_to_string(request=request, template_name='post.html',
-                                                     context={'post': post, 'thread': thread, 'posts_ids': posts_ids})
+            html_rendered_string += render_to_string('post.html', {'post': post}, request)
         return JsonResponse(html_rendered_string, safe=False)
     return HttpResponse(status=304)
 
